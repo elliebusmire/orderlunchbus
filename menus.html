@@ -1,102 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Menus | Lunch Bus</title>
-<meta name="description" content="Every Lunch Bus menu we have published for Holy Trinity Catholic School, most recent first.">
-<meta name="theme-color" content="#1A462B">
-<meta property="og:title" content="Menus | Lunch Bus">
-<meta property="og:description" content="Every Lunch Bus menu we have published for Holy Trinity Catholic School, most recent first.">
-<meta property="og:type" content="website">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Karla:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css">
-</head>
-<body>
-<header class="masthead">
-  <div class="wrap">
-    <a class="wordmark" href="index.html">
-      <svg class="mark" viewBox="0 0 64 52" aria-hidden="true" focusable="false">
-        <path class="steam" d="M22 9 q4-5 0-8"/>
-        <path class="steam" d="M34 9 q4-5 0-8"/>
-        <path class="body" d="M12 16 h40 l-5 7 H17 z"/>
-        <rect class="body" x="8" y="23" width="48" height="17" rx="3"/>
-        <rect class="detail" x="14" y="27" width="20" height="9" rx="1"/>
-        <path class="body" d="M8 33 H1" stroke="currentColor" stroke-width="0"/>
-        <circle class="body" cx="24" cy="43" r="5"/>
-        <circle class="detail" cx="24" cy="43" r="2"/>
-        <circle class="body" cx="46" cy="43" r="5"/>
-        <circle class="detail" cx="46" cy="43" r="2"/>
-      </svg>
-      <span class="wordmark-text">Lunch<span>Bus</span>
-        <span class="tagline">Hot lunch at Holy Trinity</span>
-      </span>
-    </a>
-    <nav>
-      <a href="index.html">Order</a>
-      <a href="menus.html" aria-current="page">Menus</a>
-      <a href="about.html">About</a>
-      <a href="faq.html">FAQ</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-  </div>
-</header>
-<section class="band">
-  <div class="wrap">
-    <h1>Menus</h1>
-    <p>Every menu we have published, most recent first. Months open for ordering are marked. Meals repeat on a rotation, so your student sees favourites come back.</p>
-  </div>
-</section>
-
-<main class="wrap prose">
-  <div id="months"></div>
-</main>
-
-<script>
-const today = new Date().toISOString().slice(0,10);
-const fmt = (iso) => {
-  const [y,m,d] = iso.split('-').map(Number);
-  return new Date(y, m-1, d).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
-};
-
-fetch('data/menus.json').then(r => r.json()).then(data => {
-  const wrap = document.getElementById('months');
-  const months = data.months.filter(m => m.published).slice().reverse();
-
-  if (months.length === 0) {
-    wrap.innerHTML = '<p>No menus have been published yet.</p>';
-    return;
-  }
-
-  months.forEach(m => {
-    const open = m.ordersCloseOn >= today;
-    const sec = document.createElement('section');
-    sec.className = 'past-month';
-    sec.innerHTML = '<h3>' + m.label + '</h3>' +
-      (open ? '<p><a href="index.html">Open for ordering until ' + fmt(m.ordersCloseOn) + '</a></p>'
-            : '<p>Ordering has closed for this month.</p>');
-
-    const ul = document.createElement('ul');
-    ul.className = 'past-list';
-    m.days.forEach(d => {
-      const li = document.createElement('li');
-      li.innerHTML = '<span class="d">' + fmt(d.date) + '</span><span>' + d.meal +
-        (d.choices ? ' <span class="tag">' + d.choices.join(' or ') + '</span>' : '') + '</span>';
-      ul.appendChild(li);
-    });
-    sec.appendChild(ul);
-    wrap.appendChild(sec);
-  });
-});
-</script>
-<footer>
-  <div class="wrap">
-    <p><strong>Lunch Bus</strong> serves Holy Trinity Catholic School, El Dorado Hills.<br>
-    Questions are answered the same school day. <a href="contact.html">Get in touch</a>.</p>
-  </div>
-</footer>
-</body>
-</html>
+{
+  "settings": {
+    "school": "Holy Trinity Catholic School",
+    "businessTag": "lunch-bus",
+    "statementSuffix": "LUNCH BUS",
+    "mealPrice": 800,
+    "latePrice": 1000,
+    "lateCutoffDays": 2,
+    "doublePortionPrice": 200,
+    "addOns": [
+      {
+        "id": "milk",
+        "label": "Milk",
+        "price": 200
+      },
+      {
+        "id": "juice",
+        "label": "Juice box",
+        "price": 200
+      }
+    ],
+    "grades": [
+      "TK",
+      "K",
+      "1st",
+      "2nd",
+      "3rd",
+      "4th",
+      "5th",
+      "6th",
+      "7th",
+      "8th"
+    ],
+    "contactEmail": "hello@lunchbus.example",
+    "contactPhone": "(530) 391-6765",
+    "noteMaxLength": 80,
+    "notePrompt": "Preferences only, such as sauce on the side. Allergies belong in the allergy field when you add your student."
+  },
+  "months": [
+    {
+      "id": "2026-10",
+      "label": "October 2026",
+      "published": true,
+      "ordersCloseOn": "2026-09-28",
+      "days": [
+        {
+          "date": "2026-10-06",
+          "meal": "Teriyaki Chicken Rice Bowl",
+          "description": "Teriyaki chicken over jasmine rice with broccoli and an orange.",
+          "tags": [
+            "contains soy",
+            "contains wheat"
+          ],
+          "removals": [
+            "Broccoli"
+          ]
+        },
+        {
+          "date": "2026-10-08",
+          "meal": "Cheese Quesadilla",
+          "description": "Quesadilla wedges with cucumber, ranch and fresh fruit.",
+          "tags": [
+            "vegetarian",
+            "contains dairy",
+            "contains wheat"
+          ],
+          "removals": [
+            "Ranch",
+            "Cucumber"
+          ]
+        },
+        {
+          "date": "2026-10-13",
+          "meal": "Spaghetti and 3 Meatballs",
+          "description": "Marinara and Parmesan with toasted bread and fresh fruit.",
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ],
+          "removals": [
+            "Parmesan",
+            "Toasted bread"
+          ]
+        },
+        {
+          "date": "2026-10-15",
+          "meal": "2 Cheeseburger Sliders",
+          "description": "Two cheese sliders with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ],
+          "removals": [
+            "Cheese"
+          ]
+        },
+        {
+          "date": "2026-10-20",
+          "meal": "Personal Pita Pizza",
+          "description": "Pita crust pizza with carrots, ranch and fresh fruit.",
+          "choiceLabel": "Pick a topping",
+          "choices": [
+            "Cheese",
+            "Pepperoni"
+          ],
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ],
+          "removals": [
+            "Ranch",
+            "Carrots"
+          ]
+        },
+        {
+          "date": "2026-10-22",
+          "meal": "Sandwich and Cheese",
+          "description": "Served with chips and fresh fruit.",
+          "choiceLabel": "Pick a filling",
+          "choices": [
+            "Turkey",
+            "Ham"
+          ],
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ],
+          "removals": [
+            "Cheese"
+          ]
+        },
+        {
+          "date": "2026-10-27",
+          "meal": "3 Chicken Tenders",
+          "description": "Three tenders with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        },
+        {
+          "date": "2026-10-29",
+          "meal": "3 Mini Beef Tacos",
+          "description": "Shredded cheese and bell peppers with ranch and fresh fruit.",
+          "tags": [
+            "contains dairy"
+          ],
+          "removals": [
+            "Shredded cheese",
+            "Bell peppers",
+            "Ranch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2026-11",
+      "label": "November 2026",
+      "published": false,
+      "ordersCloseOn": "2026-10-24",
+      "days": []
+    }
+  ]
+}
