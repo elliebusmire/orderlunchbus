@@ -247,10 +247,26 @@ textarea {
   padding-bottom: 0.4rem;
 }
 
-.grid {
+.grid { display: block; }
+
+.week { margin-bottom: 1.8rem; }
+
+.week-label {
+  font-family: Karla, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--moss);
+  margin: 0 0 0.55rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--line);
+}
+
+.week-days {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.7rem;
 }
 
 /* A day is a meal ticket: notched left edge, tear line above the button. */
@@ -278,6 +294,18 @@ textarea {
   font-family: Anton, Impact, sans-serif;
   font-size: var(--step-2);
   line-height: 1;
+  color: var(--forest);
+}
+
+.ticket .dow {
+  display: block;
+  font-family: Karla, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.15rem;
 }
 
 .ticket .mealname {
@@ -522,9 +550,9 @@ footer {
 
 @media (max-width: 760px) {
   .weekhead { display: none; }
-  .grid { grid-template-columns: 1fr; }
+  .week-days { grid-template-columns: 1fr; }
   .ticket { min-height: 0; flex-direction: row; flex-wrap: wrap; align-items: center; }
-  .ticket .daynum { flex: 0 0 3rem; }
+  .ticket .daynum { flex: 0 0 3.4rem; }
   .ticket .mealname { flex: 1 1 60%; }
   .ticket .mealdesc { flex: 1 1 100%; }
   .ticket-actions { flex: 1 1 100%; }
@@ -773,4 +801,70 @@ footer {
 .deadline.late {
   background: var(--clay);
   color: var(--white);
+}
+
+/* ---------- Roster chips ---------- */
+
+.chip.roster {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--forest);
+  color: var(--cream);
+  border-color: var(--forest);
+  cursor: default;
+}
+
+.chip-remove {
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--gold);
+  font-size: 1.15rem;
+  padding: 0 0 0 0.1rem;
+}
+
+.chip-remove:hover { color: var(--white); }
+
+/* ---------- Dialog extras ---------- */
+
+.already {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sage);
+  margin-left: 0.35rem;
+}
+
+.dlg-error {
+  color: var(--clay);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0.7rem 0 0;
+}
+
+.dlg-error:empty { display: none; }
+
+#dlgOptions { max-height: 55vh; overflow-y: auto; }
+
+/* ---------- Per-child subtotal ---------- */
+
+.review-group h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.group-sum {
+  font-family: Karla, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
