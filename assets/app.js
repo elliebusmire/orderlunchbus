@@ -48,6 +48,13 @@ const priceFor = (month) =>
 const canOrder = (month, day) =>
   month.published && todayISO() <= lastOrderDate(day.date);
 
+const weekStartOf = (iso) => {
+  const d = parseDate(iso);
+  const wd = d.getDay();
+  d.setDate(d.getDate() + (wd === 0 ? -6 : 1 - wd));
+  return isoOf(d);
+};
+
 const monthHasOpenDays = (month) =>
   month.published && month.days.some((d) => canOrder(month, d));
 
@@ -81,19 +88,23 @@ function renderStudents() {
   const wrap = document.getElementById('studentChips');
   wrap.innerHTML = '';
 
+  /* The roster is a list, not a selector. Meals are assigned in the meal
+     dialog instead, so a parent with three kids never has to switch modes. */
   state.students.forEach((s, i) => {
     if (!s.name) return;
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.type = 'button';
-    b.setAttribute('aria-pressed', String(i === state.activeStudent));
-    b.textContent = s.grade ? `${s.name} (${s.grade})` : s.name;
-    b.onclick = () => {
-      state.activeStudent = i;
-      renderStudents();
-      renderMonth();
-    };
-    wrap.appendChild(b);
+    const chip = document.createElement('span');
+    chip.className = 'chip roster';
+    chip.appendChild(document.createTextNode(s.grade ? `${s.name} (${s.grade})` : s.name));
+
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'chip-remove';
+    rm.setAttribute('aria-label', 'Remove ' + s.name);
+    rm.textContent = '\u00d7';
+    rm.onclick = () => removeStudent(i);
+    chip.appendChild(rm);
+
+    wrap.appendChild(chip);
   });
 
   const hasStudent = state.students.some((x) => x.name);
@@ -106,9 +117,28 @@ function renderStudents() {
   const add = document.createElement('button');
   add.className = 'chip add';
   add.type = 'button';
-  add.textContent = state.students.some((s) => s.name) ? 'Add another student' : 'Add a student';
-  add.onclick = () => document.getElementById('studentForm').classList.add('open');
+  add.textContent = hasStudent ? 'Add another student' : 'Add a student';
+  add.onclick = () => form.classList.add('open');
   wrap.appendChild(add);
+}
+
+function removeStudent(index) {
+  const student = state.students[index];
+  const meals = state.cart.filter((c) => c.studentIndex === index).length;
+  if (meals && !window.confirm(
+    `Remove ${student.name} and their ${meals} meal${meals === 1 ? '' : 's'}?`)) return;
+
+  state.students.splice(index, 1);
+  // Cart rows point at students by position, so close the gap behind them.
+  state.cart = state.cart
+    .filter((c) => c.studentIndex !== index)
+    .map((c) => (c.studentIndex > index ? Object.assign({}, c, { studentIndex: c.studentIndex - 1 }) : c));
+
+  if (!state.students.length) state.students.push({ name: '', grade: '', allergies: '' });
+
+  renderStudents();
+  renderMonth();
+  renderCart();
 }
 
 function wireStudentForm() {
@@ -179,16 +209,36 @@ function renderMonth() {
     return;
   }
 
-  // Pad the first week so meals land under the right weekday column.
-  const weekday = parseDate(month.days[0].date).getDay(); // 1 = Mon
-  const firstWeekday = weekday >= 1 && weekday <= 5 ? weekday : 1;
-  for (let i = 1; i < firstWeekday; i++) {
-    const pad = document.createElement('div');
-    pad.className = 'ticket empty';
-    grid.appendChild(pad);
-  }
+  /* Grouped by week rather than laid into a Mon-Fri grid. Two service days a
+     week left three columns of every row empty, and any gap between meals
+     pushed later dates into the wrong weekday column. */
+  const weeks = [];
+  month.days.forEach((day) => {
+    const start = weekStartOf(day.date);
+    let week = weeks.find((w) => w.start === start);
+    if (!week) {
+      week = { start, days: [] };
+      weeks.push(week);
+    }
+    week.days.push(day);
+  });
 
-  month.days.forEach((day) => grid.appendChild(ticket(day, month)));
+  weeks.forEach((week) => {
+    const block = document.createElement('div');
+    block.className = 'week';
+
+    const label = document.createElement('h4');
+    label.className = 'week-label';
+    label.textContent = 'Week of ' + dayLabel(week.start);
+    block.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'week-days';
+    week.days.forEach((day) => row.appendChild(ticket(day, month)));
+    block.appendChild(row);
+
+    grid.appendChild(block);
+  });
 }
 
 function renderMonthSwitch() {
@@ -217,17 +267,19 @@ function ticket(day, month) {
   const isPast = day.date < todayISO();
   if (isPast) el.classList.add('past');
 
-  const student = state.students[state.activeStudent];
-  const already = state.cart.some(
-    (c) => c.date === day.date && c.studentIndex === state.activeStudent
-  );
+  const roster = state.students.filter((s) => s.name);
+  const orderedFor = state.cart
+    .filter((c) => c.date === day.date)
+    .map((c) => state.students[c.studentIndex])
+    .filter(Boolean);
+  const everyoneHasIt = roster.length > 0 && orderedFor.length >= roster.length;
 
   const tags = (day.tags || [])
     .map((t) => `<span class="tag${t === 'vegetarian' ? ' veg' : ''}">${t}</span>`)
     .join('');
 
   el.innerHTML = `
-    <span class="daynum">${parseDate(day.date).getDate()}</span>
+    <span class="daynum"><span class="dow">${parseDate(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>${parseDate(day.date).getDate()}</span>
     <h3 class="mealname">${day.meal}</h3>
     <p class="mealdesc">${day.description}</p>
     <div class="tags">${tags}</div>
@@ -245,22 +297,25 @@ function ticket(day, month) {
   } else if (!canOrder(month, day)) {
     btn.disabled = true;
     btn.textContent = 'Too late to order';
-  } else if (!student || !student.name) {
+  } else if (!roster.length) {
     btn.disabled = true;
     btn.textContent = 'Add a student above';
-  } else if (already) {
+  } else if (everyoneHasIt) {
     btn.disabled = true;
-    btn.textContent = 'Added';
+    btn.textContent = roster.length > 1 ? 'Added for everyone' : 'Added';
   } else {
-    btn.textContent = `Add for ${money(priceFor(month))}`;
+    btn.textContent = orderedFor.length
+      ? `Add for someone else`
+      : `Add for ${money(priceFor(month))}`;
     btn.onclick = () => openDialog(day);
   }
 
   actions.appendChild(btn);
-  if (already) {
+
+  if (orderedFor.length) {
     const note = document.createElement('p');
     note.className = 'added-note';
-    note.textContent = `Added for ${student.name}`;
+    note.textContent = 'Added for ' + orderedFor.map((s) => s.name).join(', ');
     actions.appendChild(note);
   }
 
@@ -272,15 +327,51 @@ function ticket(day, month) {
 function openDialog(day) {
   state.pending = day;
   const dlg = document.getElementById('mealDialog');
-  const student = state.students[state.activeStudent];
 
   document.getElementById('dlgMeal').textContent = day.meal;
-  document.getElementById('dlgWho').textContent =
-    `${dayLabel(day.date)} for ${student.name}`;
+  document.getElementById('dlgWho').textContent = dayLabel(day.date);
   document.getElementById('dlgDesc').textContent = day.description;
 
   const opts = document.getElementById('dlgOptions');
   opts.innerHTML = '';
+
+  const roster = state.students
+    .map((s, i) => ({ s, i }))
+    .filter((o) => o.s.name);
+
+  const whoHead = document.createElement('p');
+  whoHead.innerHTML = '<strong>Who is this for?</strong>';
+  whoHead.style.margin = '0.2rem 0 0';
+  opts.appendChild(whoHead);
+
+  if (roster.length > 1) {
+    const all = document.createElement('div');
+    all.className = 'opt-row';
+    all.innerHTML =
+      '<input type="checkbox" id="whoAll"><label for="whoAll"><strong>Everyone</strong></label>';
+    opts.appendChild(all);
+  }
+
+  roster.forEach(({ s, i }) => {
+    const has = state.cart.some((c) => c.date === day.date && c.studentIndex === i);
+    const row = document.createElement('div');
+    row.className = 'opt-row';
+    row.innerHTML = `
+      <input type="checkbox" id="who_${i}" data-group="who" value="${i}"
+        ${has ? 'checked disabled' : ''} ${roster.length === 1 && !has ? 'checked' : ''}>
+      <label for="who_${i}">${s.name}${s.grade ? ', ' + s.grade : ''}${
+        has ? ' <span class="already">already added</span>' : ''}</label>
+    `;
+    opts.appendChild(row);
+  });
+
+  const allBox = document.getElementById('whoAll');
+  if (allBox) {
+    allBox.onchange = () => {
+      opts.querySelectorAll('input[data-group="who"]:not(:disabled)')
+        .forEach((b) => { b.checked = allBox.checked; });
+    };
+  }
 
   if (day.choices && day.choices.length) {
     const head = document.createElement('p');
@@ -333,6 +424,9 @@ function openDialog(day) {
   `;
   opts.appendChild(noteWrap);
 
+  const err = document.getElementById('dlgError');
+  if (err) err.textContent = '';
+
   dlg.showModal();
 }
 
@@ -357,6 +451,17 @@ function wireDialog() {
       document.querySelectorAll('#dlgOptions input[data-group="addon"]:checked')
     ).map((i) => i.value);
 
+    const who = Array.from(
+      document.querySelectorAll('#dlgOptions input[data-group="who"]:checked:not(:disabled)')
+    ).map((i) => Number(i.value));
+
+    const errBox = document.getElementById('dlgError');
+    if (!who.length) {
+      errBox.textContent = 'Pick at least one student for this meal.';
+      return;
+    }
+    errBox.textContent = '';
+
     const picked = document.querySelector('#dlgOptions input[name="mealchoice"]:checked');
     const removals = Array.from(
       document.querySelectorAll('#dlgOptions input[data-group="removal"]:checked')
@@ -364,16 +469,18 @@ function wireDialog() {
     const noteEl = document.getElementById('dlgNote');
     const note = noteEl ? noteEl.value.trim() : '';
 
-    state.cart.push({
-      removals,
-      note,
-      date: state.pending.date,
-      monthId: state.monthId,
-      meal: state.pending.meal,
-      choice: picked ? picked.value : '',
-      studentIndex: state.activeStudent,
-      double,
-      addOns
+    who.forEach((studentIndex) => {
+      state.cart.push({
+        removals,
+        note,
+        date: state.pending.date,
+        monthId: state.monthId,
+        meal: state.pending.meal,
+        choice: picked ? picked.value : '',
+        studentIndex,
+        double,
+        addOns
+      });
     });
 
     dlg.close();
@@ -422,9 +529,11 @@ function renderCart() {
     const lines = state.cart.filter((c) => c.studentIndex === si);
     if (lines.length === 0) return;
 
+    const subtotal = lines.reduce((sum, i) => sum + lineTotal(i), 0);
     const group = document.createElement('div');
     group.className = 'review-group';
-    group.innerHTML = `<h3>${student.name}${student.grade ? ', ' + student.grade : ''}</h3>`;
+    group.innerHTML = `<h3>${student.name}${student.grade ? ', ' + student.grade : ''}
+      <span class="group-sum">${lines.length} ${lines.length === 1 ? 'meal' : 'meals'} &middot; ${money(subtotal)}</span></h3>`;
 
     lines
       .sort((a, b) => a.date.localeCompare(b.date))
