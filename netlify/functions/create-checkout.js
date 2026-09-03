@@ -180,6 +180,10 @@ exports.handler = async (event) => {
   }
 
   const metadata = {
+    // Tags the payment as ours. The Stripe account is shared with another
+    // business, and webhook endpoints receive every event on the account,
+    // so each side has to recognise its own.
+    business: s.businessTag || 'lunch-bus',
     parent_name: parent.name.slice(0, 200),
     parent_email: parent.email.slice(0, 200),
     parent_phone: (parent.phone || '').slice(0, 40),
@@ -199,7 +203,12 @@ exports.handler = async (event) => {
       line_items: lineItems,
       customer_email: parent.email,
       metadata,
-      payment_intent_data: { metadata },
+      payment_intent_data: {
+        metadata,
+        // Card charges reject statement_descriptor; the suffix is appended to
+        // the account prefix set in the Stripe Dashboard. 22 chars combined.
+        ...(s.statementSuffix ? { statement_descriptor_suffix: s.statementSuffix } : {})
+      },
       success_url: `${site}/thanks.html?session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${site}/index.html`
     });
