@@ -1,6 +1,9 @@
 const Stripe = require('stripe');
+const menus = require('../../data/menus.json');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
+const BUSINESS = menus.settings.businessTag || 'lunch-bus';
 
 /* Reassemble the chunked rows metadata written by create-checkout. */
 function unpack(prefix, metadata) {
@@ -32,6 +35,14 @@ exports.handler = async (event) => {
 
   const session = stripeEvent.data.object;
   const md = session.metadata || {};
+
+  /* This Stripe account serves more than one business and every endpoint on
+     the account receives every event. Anything not tagged as ours is
+     acknowledged and dropped, so another site's orders never reach our sheet. */
+  if (md.business !== BUSINESS) {
+    return { statusCode: 200, body: 'Not a ' + BUSINESS + ' order, ignored' };
+  }
+
   const packed = unpack('rows', md);
 
   if (!packed) {
