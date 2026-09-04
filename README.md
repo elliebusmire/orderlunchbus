@@ -26,6 +26,59 @@ Monthly hot lunch pre-ordering for Holy Trinity Catholic School. Static site, Ne
 5. In Stripe, add a webhook endpoint pointing at `https://yoursite.com/.netlify/functions/stripe-webhook`, subscribed to `checkout.session.completed`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
 6. In Zapier, make a Catch Hook that appends a row to the Lunch Bus Orders sheet. Paste its URL into `ZAPIER_WEBHOOK_URL`.
 
+## Sharing a Stripe account with another business
+
+This account also runs Porchside Drop. Three things follow from that.
+
+**Webhooks are account-wide.** Every endpoint on the account receives every `checkout.session.completed` event, whichever site created it. So each side must recognise its own. Lunch Bus tags every payment with `metadata.business = "lunch-bus"` and the webhook drops anything without that tag.
+
+The other direction is not fixed by this repo. Porchside Drop's webhook function will start receiving Lunch Bus events, and unless it checks something first, it may write junk rows into the Porchside sheet. Add the same kind of guard there before taking a real Lunch Bus order.
+
+**Card statements show the account prefix.** Card charges reject `statement_descriptor`, so we send `statement_descriptor_suffix` instead. Stripe joins it to the prefix set in Dashboard, Settings, Business, Public details, with a `*` and a space between. The combined result must be 22 characters or fewer.
+
+| Account prefix | Result | |
+|---|---|---|
+| `PORCHSIDE` | `PORCHSIDE* LUNCH BUS` | 20 chars, fits |
+| `EB VENTURES` | `EB VENTURES* LUNCH BUS` | 22 chars, fits |
+| `ELLIE BUSMIRE` | 24 chars | too long, shorten the suffix |
+
+Change `statementSuffix` in `data/menus.json` if your prefix is long.
+
+**Receipt branding is account-level.** Logo and colour on the emailed receipt are shared and cannot be set per payment. The line items carry the date and meal name, so a parent can tell what they bought, but the header will match whatever the account is branded as.
+
+To separate the books, filter by the `business` metadata key in the Stripe Dashboard or in a payments export.
+
+## Writing orders to the sheet
+
+Two paths. The function prefers the first and falls back to the second.
+
+**Direct to Google Sheets (recommended).** Set `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_SHEET_ID` and the webhook writes to the sheet itself. One API call per order however many meals it contains, no task quota, no monthly cost.
+
+**Zapier catch hook (fallback).** Used only when the Google variables are absent. One task per meal per student, so a two-child full-month order costs 16 tasks against a 750/month plan.
+
+### Setting up the service account
+
+1. Go to console.cloud.google.com and create a project, or reuse one.
+2. APIs & Services, Library, search for Google Sheets API, Enable.
+3. APIs & Services, Credentials, Create credentials, Service account. Any name. No roles needed; access is granted by sharing the sheet, not by IAM.
+4. Open the service account, Keys tab, Add key, Create new key, JSON. A file downloads.
+5. Open the sheet and share it with the `client_email` from that file, with Editor access. This is the step people forget, and without it every write returns 403.
+6. Base64 the key file so its multi-line private key survives a dashboard text field:
+
+   ```
+   base64 -i your-key.json | pbcopy
+   ```
+
+   Paste the result into `GOOGLE_SERVICE_ACCOUNT_JSON` in Netlify. Set `GOOGLE_SHEET_ID` to the long id from the sheet URL, between `/d/` and `/edit`. Set `GOOGLE_SHEET_TAB` only if the tab is not called `Sheet1`.
+
+7. Redeploy. Environment variable changes do not reach a running site.
+
+The service account key is a credential. It belongs in Netlify's environment variables and never in this repo.
+
+### Switching between the two
+
+Remove `GOOGLE_SERVICE_ACCOUNT_JSON` and the function falls back to Zapier on the next deploy. Nothing else changes, and the column order is identical either way.
+
 ## Set up the Google Sheet first
 
 Put these headers in row 1 of Sheet1, in this order, before you connect Zapier. Zapier maps by field name and it is much less painful when the columns already exist.
@@ -93,6 +146,48 @@ Every meal also gets a short free-text request box, capped at the `noteMaxLength
 Notes that look like allergy reports are rejected at checkout with a message pointing the parent to the allergy field on their student. That is deliberate. The allergy field prints on the kitchen list beside every meal; a per-meal note does not carry the same weight, and a parent who types a severe allergy into a request box may believe they have told you when they have not.
 
 Once `ordersCloseOn` passes, the month goes read-only on its own. The checkout function checks the same date, so a stale browser tab cannot sneak a late order through.
+
+## Pausing ordering
+
+Two lines in `data/menus.json`:
+
+```json
+"orderingOpen": false,
+"opensOn": "2026-09-08"
+```
+
+`orderingOpen` is the switch. `opensOn` is the date shown to parents, and it feeds the badge, the panel heading and the step 3 heading from one place so they can never disagree. Change the date and all three follow. Leave `opensOn` out and the copy falls back to "Ordering opens soon".
+
+Opening is deliberately manual. The date does not flip the switch, because a site that starts taking payments on a schedule while Stripe is not ready is worse than one that opens a day late. On the morning of the 8th, set `orderingOpen` to `true` and commit.
+
+The menu stays visible, every Add button is disabled, the student roster and the cart bar are hidden, and the checkout block is replaced by `closedTitle` and `closedMessage`. Set it back to `true` to reopen. Nothing else needs changing, and no other file is touched.
+
+Use this whenever you cannot take money: before launch, between months, or if you need to stop mid-month. Prefer it to unpublishing a month, which leaves parents looking at an empty calendar with no explanation.
+
+### The notify list
+
+While paused, the page shows a "Coming soon" panel with an email capture form. Every submission is written to **two** places, because either one can be misconfigured silently and a lost list cannot be rebuilt.
+
+**1. Netlify Forms.** Requires a setting that is off by default on every site created after April 2023. Without it the form returns success and Netlify discards the submission.
+
+- In the Netlify UI go to Forms and select **Enable form detection**.
+- **Redeploy the site.** Nothing is accepted until you do.
+- Under Forms, add a notification so new emails reach your inbox.
+- Free tier covers 100 submissions a month.
+
+**2. The spreadsheet,** via `netlify/functions/notify.js`. Needs the same Google credentials as the order writer. Add a tab named `Notify` with these headers in row 1:
+
+```
+signed_up_at | email | source
+```
+
+Set `GOOGLE_NOTIFY_TAB` only if you name the tab something else. Duplicate emails are skipped, so signing up twice does not mean being emailed twice.
+
+Verify both after your next deploy: submit your own address, then check the Netlify Forms tab and the `Notify` sheet tab. If only one has it, the other is misconfigured, and the time to find that out is now rather than the day you announce.
+
+The form only appears while `orderingOpen` is `false`. When you reopen, it disappears and step 3 returns to the payment block.
+
+The panel promises one email and nothing else. Keep that promise: it is the reason people give an address to a business that has not opened yet.
 
 ## Pricing, and the two ordering windows
 

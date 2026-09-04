@@ -49,8 +49,8 @@
 
 <section class="hero">
   <div class="wrap">
-    <h1>A hot lunch your student will actually eat</h1>
-    <p>Lunch Bus is a food trailer that parks at Holy Trinity twice a week. Everything is cooked that morning. Choose the days you want this month and your student picks up by name.</p>
+    <h1>Order hot lunches by the month</h1>
+    <p>Lunch Bus is a food trailer that parks at Holy Trinity twice a week and cooks on site before lunch. Choose the days you want and your student picks up by name.</p>
     <p><span class="deadline" id="deadline">Loading</span></p>
 
     <div class="facts">
@@ -61,7 +61,7 @@
   </div>
 </section>
 
-<section class="students">
+<section class="students" id="stepStudents">
   <div class="wrap">
     <h2 class="step-title"><span class="stepnum">1</span> Add your student
       <span class="hint">Names and grades go on our kitchen list</span></h2>
@@ -112,8 +112,28 @@
 </section>
 
 <section class="wrap">
-  <h2 class="step-title"><span class="stepnum">3</span> Review and pay
+  <h2 class="step-title" id="stepPay"><span class="stepnum">3</span> Review and pay
     <span class="hint">Secure payment by card or digital wallet</span></h2>
+
+  <div id="pausedBox" hidden>
+    <div class="paused">
+      <p class="coming-flag">Coming soon</p>
+      <h3 id="pausedTitle"></h3>
+      <p id="pausedMessage"></p>
+
+      <form name="notify" id="notifyForm" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="notify">
+        <p hidden><label>Leave this empty: <input name="bot-field"></label></p>
+        <label for="notifyEmail">Email me when ordering opens</label>
+        <div class="notify-row">
+          <input type="email" id="notifyEmail" name="email" required placeholder="you@example.com" autocomplete="email">
+          <button class="btn primary" type="submit">Notify me</button>
+        </div>
+      </form>
+      <p class="notify-done" id="notifyDone"></p>
+    </div>
+  </div>
+
   <div id="review"></div>
 </section>
 
@@ -123,7 +143,7 @@
     <ol class="steps">
       <li><strong>You order online</strong><span>Pick your days for the month and pay once at checkout.</span></li>
       <li><strong>We park on campus</strong><span>The trailer pulls in before lunch and sets up in the lot by the parish hall.</span></li>
-      <li><strong>Food is made fresh on site</strong><span>Meals are cooked in the trailer after we arrive, not the night before.</span></li>
+      <li><strong>Food is made fresh on site</strong><span>Meals are cooked in the trailer after we arrive on campus.</span></li>
       <li><strong>We deliver by grade</strong><span>Orders go out grade by grade, each one labelled with your child's name.</span></li>
     </ol>
   </div>
