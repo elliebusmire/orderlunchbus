@@ -1,7 +1,7 @@
 {
   "settings": {
     "school": "Holy Trinity Catholic School",
-    "orderingOpen": false,
+    "orderingOpen": true,
     "opensOn": "2026-09-08",
     "closedMessage": "The October menu is set and the trailer is nearly ready. Ordering opens Tuesday, September 8, and stays at $8 a meal until the pre-order deadline on September 28. Have a look at the menu below, and leave your email if you would like a reminder when it goes live.",
     "businessTag": "lunch-bus",
