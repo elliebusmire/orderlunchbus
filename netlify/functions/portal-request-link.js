@@ -30,7 +30,14 @@ exports.handler = async (event) => {
       await sendSignInLink(email, `${site}/.netlify/functions/portal-verify?token=${encodeURIComponent(linkToken(email))}`);
     }
   } catch (err) {
+    /* A missing SESSION_SECRET or RESEND_API_KEY is a setup problem, not
+       something the parent did wrong. Say so plainly rather than sending them
+       off to wait for an email that will never arrive. */
     console.error('Sign-in link failed', err.message);
+    if (/SESSION_SECRET|RESEND_API_KEY/.test(err.message)) {
+      return reply(503, { error: 'Sign-in is temporarily unavailable. Email orderlunchbus@gmail.com and we will send your order details.' });
+    }
+    return reply(502, { error: 'The link did not send. Try again in a minute, or email orderlunchbus@gmail.com.' });
   }
   return reply(200, { ok: true });
 };
