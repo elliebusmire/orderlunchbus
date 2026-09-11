@@ -7,6 +7,18 @@
   included_files = ["data/menus.json"]
 
 [[headers]]
+  for = "/portal.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/thanks.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex"
+
+[[headers]]
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"

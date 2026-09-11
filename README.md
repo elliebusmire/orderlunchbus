@@ -12,41 +12,39 @@ Monthly hot lunch pre-ordering for Holy Trinity Catholic School. Static site, Ne
 | `faq.html`, `contact.html` | Plain content pages. Edit the text directly. |
 | `assets/app.js` | Calendar rendering and cart. Display prices only. |
 | `netlify/functions/create-checkout.js` | Recalculates every price from `menus.json` and creates the Stripe session. |
-| `netlify/functions/stripe-webhook.js` | On payment, splits the order into one row per meal and posts each to Zapier. |
+| `netlify/functions/stripe-webhook.js` | On payment, splits the order into one row per meal and writes it to the sheet. |
+| `netlify/functions/lib/rows.js` | The one description of how an order is packed into Stripe metadata. The webhook and the portal both read through it. |
+| `thanks.html` | Where Stripe sends parents after paying. Shows exactly what went through, by student. |
+| `portal.html`, `assets/orders.js` | My orders: sign in by email, see upcoming lunches, allergies on file, and receipts. |
+| `netlify/functions/order-summary.js` | Feeds the order list on `thanks.html`. |
+| `netlify/functions/portal-*.js` | Sign-in link, sign-in, order list and sign-out for My orders. |
 
 ## First-time setup
 
 1. Push this to a new GitHub repo called `lunch-bus`.
 2. In Netlify, add a new site from that repo. No build command needed.
 3. Add these environment variables under Site settings, Environment variables:
-   - `STRIPE_SECRET_KEY`
+   - `STRIPE_SECRET_KEY`, from the Lunch Bus Stripe account. The publishable key is not used anywhere.
    - `STRIPE_WEBHOOK_SECRET`
-   - `ZAPIER_WEBHOOK_URL`
+   - `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_SHEET_ID`, or `ZAPIER_WEBHOOK_URL` (see Writing orders to the sheet)
+   - `SESSION_SECRET`, any random string of 32 or more characters. `openssl rand -hex 32` makes one. It signs the My orders sign-in links.
+   - `RESEND_API_KEY` and `EMAIL_FROM` (see My orders)
 4. In Stripe, go to Settings, then Payment methods, and switch on Apple Pay and Google Pay. Stripe Checkout renders them with no code changes, but only if they are enabled on the account. Card is on by default.
-5. In Stripe, add a webhook endpoint pointing at `https://yoursite.com/.netlify/functions/stripe-webhook`, subscribed to `checkout.session.completed`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+5. In Stripe, with the Lunch Bus account selected, add a webhook endpoint pointing at `https://orderlunchbus.com/.netlify/functions/stripe-webhook`, subscribed to `checkout.session.completed`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
 6. In Zapier, make a Catch Hook that appends a row to the Lunch Bus Orders sheet. Paste its URL into `ZAPIER_WEBHOOK_URL`.
 
-## Sharing a Stripe account with another business
+## The Stripe account
 
-This account also runs Porchside Drop. Three things follow from that.
+Lunch Bus has its own Stripe account, in the same Stripe organization as Porchside Drop. Keys, webhooks, branding and receipts all belong to one account, so check the account picker says Lunch Bus before copying a key or adding a webhook.
 
-**Webhooks are account-wide.** Every endpoint on the account receives every `checkout.session.completed` event, whichever site created it. So each side must recognise its own. Lunch Bus tags every payment with `metadata.business = "lunch-bus"` and the webhook drops anything without that tag.
+Set these in the Lunch Bus account before taking a real order:
 
-The other direction is not fixed by this repo. Porchside Drop's webhook function will start receiving Lunch Bus events, and unless it checks something first, it may write junk rows into the Porchside sheet. Add the same kind of guard there before taking a real Lunch Bus order.
+- **Settings, Business, Public details.** Business name Lunch Bus, statement descriptor `LUNCH BUS`, support email orderlunchbus@gmail.com. This is what parents see on their card statement.
+- **Settings, Branding.** Logo and the Holy Trinity green. This heads the Stripe payment page and the emailed receipt.
+- **Settings, Customer emails.** Switch on emails for successful payments. `thanks.html` tells parents a receipt is on its way, and Stripe only sends one in live mode if this is on.
+- **Activation.** Business and bank details. Test mode works straight away; live payments wait for Stripe to approve the account.
 
-**Card statements show the account prefix.** Card charges reject `statement_descriptor`, so we send `statement_descriptor_suffix` instead. Stripe joins it to the prefix set in Dashboard, Settings, Business, Public details, with a `*` and a space between. The combined result must be 22 characters or fewer.
-
-| Account prefix | Result | |
-|---|---|---|
-| `PORCHSIDE` | `PORCHSIDE* LUNCH BUS` | 20 chars, fits |
-| `EB VENTURES` | `EB VENTURES* LUNCH BUS` | 22 chars, fits |
-| `ELLIE BUSMIRE` | 24 chars | too long, shorten the suffix |
-
-Change `statementSuffix` in `data/menus.json` if your prefix is long.
-
-**Receipt branding is account-level.** Logo and colour on the emailed receipt are shared and cannot be set per payment. The line items carry the date and meal name, so a parent can tell what they bought, but the header will match whatever the account is branded as.
-
-To separate the books, filter by the `business` metadata key in the Stripe Dashboard or in a payments export.
+Every checkout is still tagged with `metadata.business = "lunch-bus"`. The webhook and My orders only act on sessions carrying that tag, so a payment link or manual charge on the same account never reaches the kitchen sheet.
 
 ## Writing orders to the sheet
 
@@ -189,6 +187,27 @@ The form only appears while `orderingOpen` is `false`. When you reopen, it disap
 
 The panel promises one email and nothing else. Keep that promise: it is the reason people give an address to a business that has not opened yet.
 
+## My orders
+
+Parents open `portal.html`, enter the email they used at checkout, and get a sign-in link that works for 30 minutes. Following it keeps them signed in on that device for 14 days. No accounts or passwords, and nothing stored outside Stripe: the page reads their orders straight from the Lunch Bus Stripe account.
+
+They see every lunch from today on, grouped by date, with the allergies on file for each student, then each past payment with a link to its Stripe receipt. Real allergies print in red; "None" does not.
+
+The form says the same thing whether or not an address has orders, so nobody can use it to check whether a family ordered.
+
+Orders are matched on the email typed at checkout, which is lowercased before it reaches Stripe. A parent who used two addresses sees each address's orders separately.
+
+### Sending the sign-in email
+
+The link goes out through Resend, which is free at this volume.
+
+1. Create an account at resend.com and add the domain `orderlunchbus.com`.
+2. Add the DNS records Resend lists wherever orderlunchbus.com's DNS is managed, then wait for Resend to mark the domain verified.
+3. Create an API key and put it in `RESEND_API_KEY`.
+4. Set `EMAIL_FROM` to `Lunch Bus <orders@orderlunchbus.com>`. Replies go to `contactEmail` in `data/menus.json`.
+
+Without these, My orders still loads but no sign-in email is sent, and the failure shows in the function log.
+
 ## Pricing, and the two ordering windows
 
 The monthly deadline sets the price. It does not close ordering.
@@ -198,7 +217,9 @@ The monthly deadline sets the price. It does not close ordering.
 | On or before `ordersCloseOn` | `mealPrice` |
 | After `ordersCloseOn` | `latePrice` |
 
-Availability is handled separately and per meal. A meal disappears from the calendar `lateCutoffDays` before it is served, so nobody can order food that is already being shopped for. Set that number to whatever lead time you actually need.
+Availability is handled separately and per meal. A meal closes at `orderCutoffHour`, `orderCutoffDaysBefore` days before it is served, in school time. The current setting, `0` and `9`, closes each meal at 9 am on the morning it is served. The calendar and the checkout function read the same two numbers, and both use Pacific time whatever timezone a parent's phone is set to.
+
+A parent who opens Stripe checkout at 8:55 can still finish paying a few minutes after 9, because a Stripe checkout stays open for at least 30 minutes. Those rows land in the sheet with their `ordered_at` time, so look for late arrivals before you finalize the day's count.
 
 Each meal is priced at the moment it is ordered. A parent who pre-orders in September and adds a meal in October pays $8 for the first and $10 for the second, and the earlier ones are never repriced.
 
@@ -209,7 +230,8 @@ Edit `settings` in `data/menus.json`. Amounts are in cents.
 ```json
 "mealPrice": 800,
 "latePrice": 1000,
-"lateCutoffDays": 2,
+"orderCutoffDaysBefore": 0,
+"orderCutoffHour": 9,
 "doublePortionPrice": 200,
 "addOns": [
   { "id": "milk", "label": "Milk", "price": 200 },
@@ -228,7 +250,8 @@ Use a Stripe test key and `npx stripe listen --forward-to localhost:8888/.netlif
 
 ## Before you go live
 
-- Swap the placeholder email and phone in `contact.html` and in `settings` in `menus.json`.
-- Decide whether Lunch Bus gets its own Stripe account. If it shares Porchside Drop's, parents will see Porchside on their card statement.
-- Place a real order with a test card and confirm the sheet fills in correctly.
+- Confirm the email and phone in `contact.html` and in `settings` in `menus.json`.
+- Work through The Stripe account section above, in the Lunch Bus account.
+- Place an order with a test card (`4242 4242 4242 4242`) and confirm the sheet fills in, `thanks.html` lists the meals, and My orders sends a sign-in link and shows the order.
+- Set `orderingOpen` to `true` in `data/menus.json` and commit. Until then every Add button stays disabled and checkout refuses orders.
 - Check the page on a phone. Most parents will order from the pickup line.

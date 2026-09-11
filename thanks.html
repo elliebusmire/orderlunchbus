@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Order confirmed | Lunch Bus</title>
 <meta name="description" content="Your Lunch Bus order is confirmed.">
+<meta name="robots" content="noindex">
 <meta name="theme-color" content="#1A462B">
 <meta property="og:title" content="Order confirmed | Lunch Bus">
 <meta property="og:description" content="Your Lunch Bus order is confirmed.">
@@ -41,6 +42,7 @@
       <a href="about.html">About</a>
       <a href="faq.html">FAQ</a>
       <a href="contact.html">Contact</a>
+      <a href="portal.html">My orders</a>
     </nav>
   </div>
 </header>
@@ -52,6 +54,8 @@
 </section>
 
 <main class="wrap prose">
+  <div id="orderSummary" class="order-summary" aria-live="polite"></div>
+
   <p>A receipt is on its way to the email address you entered. It lists each meal by student and by date, so keep it as your record of what was ordered.</p>
   <p>Your student is on our list for those dates, so there is nothing further you need to do.</p>
 
@@ -60,8 +64,12 @@
   <p>If your student ends up away on one of those days, the meal is still yours. Collect it from the front office, send someone for it, or email us and we will pass it to a student or teacher.</p>
   <p>Next month's menu goes up before this one finishes, so you can order ahead without waiting for a reminder.</p>
 
-  <p><a class="btn primary" href="index.html">Order more meals</a></p>
+  <p class="portal-actions">
+    <a class="btn primary" href="index.html">Order more meals</a>
+    <a class="btn" href="portal.html">See all my orders</a>
+  </p>
 </main>
+<script src="assets/orders.js"></script>
 <footer>
   <div class="wrap">
     <p><strong>Lunch Bus</strong> serves Holy Trinity Catholic School, El Dorado Hills.<br>

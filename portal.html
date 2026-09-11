@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Contact | Lunch Bus</title>
-<meta name="description" content="Reach Lunch Bus about orders, corrections, absences and allergies at Holy Trinity Catholic School.">
+<title>My orders | Lunch Bus</title>
+<meta name="description" content="See your Lunch Bus lunches and receipts.">
+<meta name="robots" content="noindex">
 <meta name="theme-color" content="#1A462B">
-<meta property="og:title" content="Contact | Lunch Bus">
-<meta property="og:description" content="Reach Lunch Bus about orders, corrections, absences and allergies at Holy Trinity Catholic School.">
+<meta property="og:title" content="My orders | Lunch Bus">
+<meta property="og:description" content="See your Lunch Bus lunches and receipts.">
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,36 +41,23 @@
       <a href="menus.html">Menus</a>
       <a href="about.html">About</a>
       <a href="faq.html">FAQ</a>
-      <a href="contact.html" aria-current="page">Contact</a>
-      <a href="portal.html">My orders</a>
+      <a href="contact.html">Contact</a>
+      <a href="portal.html" aria-current="page">My orders</a>
     </nav>
   </div>
 </header>
 <section class="band">
   <div class="wrap">
-    <h1>Contact Lunch Bus</h1>
-    <p>Email is the way to reach us and we answer on school days. Orders, corrections, absences and allergy questions all come straight to us.</p>
+    <h1>My orders</h1>
+    <p>Every lunch you have ordered, the allergies we have on file, and a receipt for each payment.</p>
   </div>
 </section>
 
-<main class="wrap prose">
-  <div class="facts">
-    <div class="fact"><span class="k">Email</span><span class="v"><a href="mailto:orderlunchbus@gmail.com">orderlunchbus@gmail.com</a></span></div>
-    <div class="fact"><span class="k">Serving</span><span class="v">Holy Trinity Catholic School, El Dorado Hills</span></div>
-  </div>
-
-  <h2 class="section-head">Questions and corrections</h2>
-  <p>Email us with the name on the receipt and what needs to change. Anything before the ordering deadline is straightforward to fix.</p>
-
-  <h2>Allergies</h2>
-  <p>All allergies must be listed at the time of ordering, in the allergy field when you add your student. That is what prints on our kitchen list. If your child has a severe allergy, email us before you place a first order so we can tell you which meals we are able to serve safely.</p>
-
-  <h2>If your student is absent</h2>
-  <p>The meal is still made. You are welcome to collect it from the front office, send someone to collect it on your behalf, or let us know and we will pass it to a student or teacher who would like it.</p>
-
-  <h2>Menu requests</h2>
-  <p>If your student has something they would like to see, tell us. Menus are planned a month ahead, so early suggestions have the best chance of making it on.</p>
+<main class="wrap portal" id="portal" aria-live="polite">
+  <p class="portal-loading">Loading your orders</p>
 </main>
+
+<script src="assets/orders.js"></script>
 <footer>
   <div class="wrap">
     <p><strong>Lunch Bus</strong> serves Holy Trinity Catholic School, El Dorado Hills.<br>
