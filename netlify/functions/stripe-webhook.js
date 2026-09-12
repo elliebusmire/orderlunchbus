@@ -83,8 +83,11 @@ exports.handler = async (event) => {
       return { statusCode: 200, body: `Wrote ${written} rows to the sheet` };
     } catch (err) {
       console.error('Sheets write failed for', session.id, err.message);
-      // 500 so Stripe retries rather than losing the order silently.
-      return { statusCode: 500, body: 'Sheets write failed' };
+      /* The reason goes in the response as well as the log. It is only ever
+         seen in the Stripe dashboard, and it turns a silent failure into
+         something you can read without digging through function logs.
+         500 so Stripe retries rather than losing the order. */
+      return { statusCode: 500, body: 'Sheets write failed: ' + String(err.message).slice(0, 400) };
     }
   }
 
