@@ -178,7 +178,7 @@
     const ev = state.event;
     const open = isOpen(ev);
     const menu = $('menu');
-    menu.replaceChildren(...ev.items.map((item) => {
+    const card = (item) => {
       const inOrder = state.lines.filter((l) => l.itemId === item.id).reduce((s, l) => s + l.qty, 0);
 
       let label = `Add ${money(item.price)}`;
@@ -202,7 +202,23 @@
             onclick: () => addItem(item)
           }, label),
           inOrder ? el('p', { class: 'added-note' }, `${inOrder} in your order`) : null));
-    }));
+    };
+
+    /* Items are grouped by their section, in the order the sections first
+       appear in menus.json. With one section there is no heading at all. */
+    const sections = [];
+    ev.items.forEach((item) => {
+      const name = item.section || '';
+      let group = sections.find((s) => s.name === name);
+      if (!group) { group = { name, items: [] }; sections.push(group); }
+      group.items.push(item);
+    });
+
+    // Sections after the first (drinks, chips) are small add-ons, drawn as a
+    // tighter two-column grid on phones so they don't take five screens.
+    menu.replaceChildren(...sections.map((s, i) => el('div', { class: 'taz-section' },
+      sections.length > 1 && s.name ? el('h3', { class: 'taz-section-head' }, s.name) : null,
+      el('div', { class: 'taz-menu' + (i > 0 ? ' compact' : '') }, s.items.map(card)))));
   }
 
   function addItem(item) {

@@ -312,3 +312,25 @@ body.taz dialog::backdrop { background: rgba(19, 41, 75, 0.65); }
 /* The fixed cart bar sits over the bottom of the screen. Anything scrolled
    into view by focus or by the browser stops above it, not under it. */
 body.taz :is(input, button, select, textarea) { scroll-margin-bottom: 6rem; }
+
+/* ---------- Menu sections ---------- */
+
+.taz-section + .taz-section { margin-top: 1.8rem; }
+
+.taz-section-head {
+  font-size: var(--step-1);
+  margin: 0 0 0.7rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--line);
+}
+
+@media (max-width: 760px) {
+  .taz-menu.compact { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .taz-menu.compact .taz-item { padding: 0.75rem; }
+  .taz-menu.compact .taz-item-head { flex-direction: column; gap: 0.1rem; }
+  .taz-menu.compact .taz-item h3 { font-size: 1rem; }
+  .taz-menu.compact .taz-price { font-size: 1.25rem; }
+  .taz-menu.compact .taz-item p { font-size: 0.8rem; }
+  .taz-menu.compact .ticket-actions { margin-top: auto; padding-top: 0.5rem; }
+  .taz-menu.compact .add-btn { padding: 0.45rem 0.2rem; }
+}

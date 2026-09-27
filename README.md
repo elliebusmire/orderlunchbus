@@ -273,7 +273,7 @@ Prices are in cents and set per item. `closesHour` is 24-hour Pacific time; 12 c
 
 `taxRate` is in basis points: 725 is 7.25%. Tax is charged on the order subtotal, rounded to the cent, and shows as its own line on the Stripe receipt with `taxLabel` as its name. The amount is also stored in the session metadata as `tax_cents` for reporting. Mark an item `"taxable": false` to leave it out of the taxed subtotal. School lunches are not taxed and are not affected.
 
-Items with no `options` or `removals` add in one tap. Items with `options` open a picker; `pick` is how many choices are required. `removals` lists toppings a parent can leave off; they land in the `leave_off` column.
+Items with no `options` or `removals` add in one tap. Items with `options` open a picker; `pick` is how many choices are required. `removals` lists toppings a parent can leave off; they land in the `leave_off` column. `section` groups items under a heading on the page (Meals, Drinks and chips); sections after the first show as a tighter two-column grid on phones.
 
 **In the sheet.** Event orders land in the same tab, one row per item. `service_date` is the meet date, `student_name` is the pickup name, `choice` holds the sides, and `grade` is blank. Filter `service_date` to get the meet's prep list and count `meal` and `choice` for quantities.
 

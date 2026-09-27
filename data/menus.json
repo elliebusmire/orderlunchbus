@@ -195,7 +195,8 @@
           "tags": [
             "contains wheat",
             "contains dairy"
-          ]
+          ],
+          "section": "Meals"
         },
         {
           "id": "tt-plate",
@@ -204,7 +205,8 @@
           "price": 1800,
           "tags": [
             "contains dairy"
-          ]
+          ],
+          "section": "Meals"
         },
         {
           "id": "bowl",
@@ -229,6 +231,78 @@
             "Tomatoes",
             "Cheese",
             "Onions and peppers"
+          ],
+          "section": "Meals"
+        },
+        {
+          "id": "kids-plate",
+          "section": "Meals",
+          "name": "Kids Plate",
+          "description": "A kid-size portion of tri-tip with two sides.",
+          "price": 1000,
+          "tags": [
+            "contains dairy"
+          ],
+          "options": [
+            {
+              "label": "Pick two sides",
+              "pick": 2,
+              "choices": [
+                "Mashed potatoes",
+                "Corn",
+                "Fruit cup"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "water",
+          "section": "Drinks and chips",
+          "name": "Bottled Water",
+          "description": "Cold 16.9 oz bottle.",
+          "price": 200,
+          "tags": []
+        },
+        {
+          "id": "soda",
+          "section": "Drinks and chips",
+          "name": "Soda",
+          "description": "Cold 12 oz can.",
+          "price": 300,
+          "tags": []
+        },
+        {
+          "id": "iced-tea",
+          "section": "Drinks and chips",
+          "name": "Iced Tea",
+          "description": "Cold bottled iced tea.",
+          "price": 300,
+          "tags": []
+        },
+        {
+          "id": "la-croix",
+          "section": "Drinks and chips",
+          "name": "La Croix",
+          "description": "Cold 12 oz can of sparkling water.",
+          "price": 300,
+          "tags": []
+        },
+        {
+          "id": "chips",
+          "section": "Drinks and chips",
+          "name": "Chips",
+          "description": "Single-serve bag of Lay's.",
+          "price": 200,
+          "tags": [],
+          "options": [
+            {
+              "label": "Pick a flavor",
+              "pick": 1,
+              "choices": [
+                "Lay's Classic",
+                "Lay's BBQ"
+              ]
+            }
           ]
         }
       ]
