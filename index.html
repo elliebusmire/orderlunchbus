@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Order | Lunch Bus</title>
-<meta name="description" content="Monthly hot lunch ordering for students at Holy Trinity Catholic School in El Dorado Hills.">
+<title>Lunch Bus | Hot food in El Dorado Hills</title>
+<meta name="description" content="Order ahead from Lunch Bus: monthly hot lunch at Holy Trinity Catholic School, and meet-day food for the TAZ Swim Team.">
 <meta name="theme-color" content="#1A462B">
-<meta property="og:title" content="Order | Lunch Bus">
-<meta property="og:description" content="Monthly hot lunch ordering for students at Holy Trinity Catholic School in El Dorado Hills.">
+<meta property="og:title" content="Lunch Bus | Hot food in El Dorado Hills">
+<meta property="og:description" content="Order ahead from Lunch Bus: Holy Trinity hot lunch and TAZ swim meets.">
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Karla:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
-<body>
+<body class="home">
 <header class="masthead">
   <div class="wrap">
     <a class="wordmark" href="index.html">
@@ -32,13 +32,13 @@
         <circle class="detail" cx="46" cy="43" r="2"/>
       </svg>
       <span class="wordmark-text">Lunch<span>Bus</span>
-        <span class="tagline">Hot lunch at Holy Trinity</span>
+        <span class="tagline">Hot food in El Dorado Hills</span>
       </span>
     </a>
     <nav>
-      <a href="index.html" aria-current="page">Order</a>
-      <a href="menus.html">Menus</a>
+      <a href="holy-trinity.html">Holy Trinity</a>
       <a href="taz.html">TAZ Swim Events</a>
+      <a href="menus.html">Menus</a>
       <a href="about.html">About</a>
       <a href="faq.html">FAQ</a>
       <a href="contact.html">Contact</a>
@@ -47,136 +47,26 @@
   </div>
 </header>
 
-<main>
-
-<section class="hero">
-  <div class="wrap">
-    <h1>Order hot lunches by the month</h1>
-    <p>Lunch Bus is a food trailer that parks at Holy Trinity twice a week and cooks on site before lunch. Choose the days you want and your student picks up by name.</p>
-    <p><span class="deadline" id="deadline">Loading</span></p>
-
-    <div class="facts">
-      <div class="fact"><span class="k">$8</span><span class="v">Per meal when you pre-order</span></div>
-      <div class="fact"><span class="k">2&times;</span><span class="v">Days per week</span></div>
-      <div class="fact"><span class="k">TK&ndash;8</span><span class="v">All grades served</span></div>
-    </div>
+<main class="wrap chooser">
+  <h1>Where are you ordering for?</h1>
+  <div class="chooser-grid">
+    <a class="choice choice-ht" href="holy-trinity.html">
+      <span class="choice-name">Holy Trinity</span>
+      <span class="choice-what">Hot school lunch, ordered by the month</span>
+      <span class="choice-go">Order lunch</span>
+    </a>
+    <a class="choice choice-taz" href="taz.html">
+      <span class="choice-name">TAZ Swim Team</span>
+      <span class="choice-what">Meet-day food at the EDH pool, picked up without the line</span>
+      <span class="choice-go">Order for a meet</span>
+    </a>
   </div>
-</section>
-
-<section class="students" id="stepStudents">
-  <div class="wrap">
-    <h2 class="step-title"><span class="stepnum">1</span> Add your student
-      <span class="hint">Names and grades go on our kitchen list</span></h2>
-    <div class="student-chips" id="studentChips"></div>
-
-    <div class="student-form" id="studentForm">
-      <div class="field">
-        <label for="sName">Student name</label>
-        <input type="text" id="sName" placeholder="First and last name">
-      </div>
-      <div class="field narrow">
-        <label for="sGrade">Grade</label>
-        <select id="sGrade"><option value="">Pick one</option></select>
-      </div>
-      <div class="field">
-        <label for="sAllergies">Allergies or dietary notes</label>
-        <input type="text" id="sAllergies" placeholder="Peanut allergy, no dairy, none">
-      </div>
-      <button class="btn primary" type="button" id="saveStudent">Save student</button>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2 class="step-title"><span class="stepnum">2</span> Pick your days
-      <span class="hint">Tap any meal to add it</span></h2>
-
-    <p class="needs-student" id="needsStudent" hidden>Add a student above and the calendar will unlock.</p>
-
-    <div class="month-head">
-      <h3 id="monthName">Loading</h3>
-      <div class="month-switch" id="monthSwitch"></div>
-    </div>
-
-    <div class="grid" id="grid"></div>
-
-    <div class="legend">
-      <p class="legend-tags">
-        <span class="tag veg">vegetarian</span>
-        <span class="tag">contains wheat</span>
-        <span class="tag">contains dairy</span>
-        <span class="tag">contains soy</span>
-      </p>
-      <p>These labels appear on each meal card. Read the <a href="faq.html">allergy notes</a> before ordering for a child with a severe allergy.</p>
-    </div>
-  </div>
-</section>
-
-<section class="wrap">
-  <h2 class="step-title" id="stepPay"><span class="stepnum">3</span> Review and pay
-    <span class="hint">Secure payment by card or digital wallet</span></h2>
-
-  <div id="pausedBox" hidden>
-    <div class="paused">
-      <p class="coming-flag">Coming soon</p>
-      <h3 id="pausedTitle"></h3>
-      <p id="pausedMessage"></p>
-
-      <form name="notify" id="notifyForm" data-netlify="true" netlify-honeypot="bot-field">
-        <input type="hidden" name="form-name" value="notify">
-        <p hidden><label>Leave this empty: <input name="bot-field"></label></p>
-        <label for="notifyEmail">Email me when ordering opens</label>
-        <div class="notify-row">
-          <input type="email" id="notifyEmail" name="email" required placeholder="you@example.com" autocomplete="email">
-          <button class="btn primary" type="submit">Notify me</button>
-        </div>
-      </form>
-      <p class="notify-done" id="notifyDone"></p>
-    </div>
-  </div>
-
-  <div id="review"></div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2 class="section-head">How pickup works</h2>
-    <ol class="steps">
-      <li><strong>You order online</strong><span>Pick your days for the month and pay once at checkout.</span></li>
-      <li><strong>We park on campus</strong><span>The trailer pulls in before lunch and sets up in the lot by the parish hall.</span></li>
-      <li><strong>Food is made fresh on site</strong><span>Meals are cooked in the trailer after we arrive on campus.</span></li>
-      <li><strong>We deliver by grade</strong><span>Orders go out grade by grade, each one labelled with your child's name.</span></li>
-    </ol>
-  </div>
-</section>
-
+  <p class="chooser-help">Already ordered? <a href="portal.html">See my orders</a></p>
 </main>
 
-<div class="cartbar" id="cartbar" hidden>
-  <div class="wrap">
-    <span class="cart-count" id="cartCount"></span>
-    <span class="cart-total" id="cartTotal"></span>
-    <button class="btn primary" type="button" id="cartJump">Review and pay</button>
-  </div>
-</div>
-
-<dialog id="mealDialog">
-  <h2 class="display" id="dlgMeal"></h2>
-  <p><strong id="dlgWho"></strong></p>
-  <p id="dlgDesc"></p>
-  <div id="dlgOptions"></div>
-  <p id="dlgError" class="dlg-error"></p>
-  <div class="dialog-foot">
-    <button class="btn primary" type="button" id="dlgAdd">Add to order</button>
-    <button class="btn ghost" type="button" id="dlgCancel">Cancel</button>
-  </div>
-</dialog>
-
-<script src="assets/app.js"></script>
 <footer>
   <div class="wrap">
-    <p><strong>Lunch Bus</strong> serves Holy Trinity Catholic School, El Dorado Hills.<br>
+    <p><strong>Lunch Bus</strong> serves El Dorado Hills and surrounding areas.<br>
     Questions are answered the same school day. <a href="contact.html">Get in touch</a>.</p>
   </div>
 </footer>

@@ -65,6 +65,10 @@
   const picksText = (item, picks) =>
     (item.options || []).map((g, gi) => g.choices.filter((c) => (picks[gi] || []).includes(c)).join(' & ')).join(' / ');
 
+  const leaveOffText = (removals) => (removals || []).map((r) => 'no ' + r.toLowerCase()).join(', ');
+
+  const needsDialog = (item) => (item.options && item.options.length) || (item.removals && item.removals.length);
+
   const lineCents = (line) => itemById(line.itemId).price * line.qty;
   const subtotal = () => state.lines.reduce((s, l) => s + lineCents(l), 0);
   // Same rounding as create-event-checkout.js, so the totals always agree.
@@ -182,7 +186,7 @@
       if (ev.orderingOpen === false) { label = 'Pre-orders open soon'; disabled = true; }
       else if (!open) { label = 'Pre-orders closed'; disabled = true; }
       else if (units() >= maxUnits()) { label = 'Order limit reached'; disabled = true; }
-      else if (inOrder) { label = (item.options && item.options.length) ? 'Add another' : 'Add one more'; }
+      else if (inOrder) { label = needsDialog(item) ? 'Add another' : 'Add one more'; }
 
       return el('article', { class: 'taz-item' },
         el('div', { class: 'taz-item-head' },
@@ -203,23 +207,23 @@
 
   function addItem(item) {
     if (!isOpen(state.event)) { refreshAll(); return; }
-    if (item.options && item.options.length) {
+    if (needsDialog(item)) {
       openDialog(item);
       return;
     }
     // No choices to make, so one tap adds one. Quantity changes live in the review.
-    addLine(item, [], 1);
+    addLine(item, [], [], 1);
   }
 
-  function addLine(item, picks, qty) {
+  function addLine(item, picks, removals, qty) {
     const room = maxUnits() - units();
     if (room <= 0) return false;
-    const key = item.id + '|' + JSON.stringify(picks);
+    const key = item.id + '|' + JSON.stringify(picks) + '|' + JSON.stringify(removals);
     const existing = state.lines.find((l) => l.key === key);
     if (existing) {
       existing.qty = Math.min(existing.qty + qty, MAX_QTY_PER_LINE, existing.qty + room);
     } else {
-      state.lines.push({ key, itemId: item.id, picks, qty: Math.min(qty, room) });
+      state.lines.push({ key, itemId: item.id, picks, removals, qty: Math.min(qty, room) });
     }
     renderMenu();
     renderReview();
@@ -237,7 +241,7 @@
 
     const opts = $('dlgOptions');
     opts.replaceChildren();
-    item.options.forEach((group, gi) => {
+    (item.options || []).forEach((group, gi) => {
       const need = group.pick || 1;
       opts.append(el('p', { style: 'margin:0.6rem 0 0' }, el('strong', {}, group.label)));
       group.choices.forEach((choice, ci) => {
@@ -251,6 +255,16 @@
         opts.append(el('div', { class: 'opt-row' }, input, el('label', { for: id }, choice)));
       });
     });
+
+    if (item.removals && item.removals.length) {
+      opts.append(el('p', { style: 'margin:0.9rem 0 0' }, el('strong', {}, 'Leave anything off?')));
+      item.removals.forEach((r, ri) => {
+        const id = `rm_${ri}`;
+        opts.append(el('div', { class: 'opt-row' },
+          el('input', { type: 'checkbox', id, value: r, 'data-removal': '1' }),
+          el('label', { for: id }, 'No ' + r.toLowerCase())));
+      });
+    }
 
     updateDlgQty();
     $('itemDialog').showModal();
@@ -282,7 +296,7 @@
       const item = state.pendingItem;
       if (!item) return;
       const picks = [];
-      for (let gi = 0; gi < item.options.length; gi++) {
+      for (let gi = 0; gi < (item.options || []).length; gi++) {
         const group = item.options[gi];
         const need = group.pick || 1;
         const chosen = [...document.querySelectorAll(`#dlgOptions input[data-group="${gi}"]:checked`)].map((i) => i.value);
@@ -292,7 +306,8 @@
         }
         picks.push(chosen);
       }
-      addLine(item, picks, state.dlgQty);
+      const removals = [...document.querySelectorAll('#dlgOptions input[data-removal]:checked')].map((i) => i.value);
+      addLine(item, picks, removals, state.dlgQty);
       dlg.close();
     });
   }
@@ -365,8 +380,11 @@
       state.lines.map((line) => {
         const item = itemById(line.itemId);
         const picks = picksText(item, line.picks);
+        const off = leaveOffText(line.removals);
         return el('div', { class: 'review-line' },
-          el('span', { class: 'what' }, item.name, picks ? el('span', { class: 'extras', style: 'display:block' }, picks) : null),
+          el('span', { class: 'what' }, item.name,
+            picks ? el('span', { class: 'extras', style: 'display:block' }, picks) : null,
+            off ? el('span', { class: 'extras', style: 'display:block' }, off) : null),
           stepper(line),
           el('span', {}, money(lineCents(line))),
           el('button', {
@@ -461,7 +479,7 @@
         body: JSON.stringify({
           eventId: state.event.id,
           customer: { name: c.name.trim(), email: c.email.trim(), phone: c.phone.trim(), allergies: c.allergies.trim(), pickup: c.pickup },
-          lines: state.lines.map((l) => ({ itemId: l.itemId, picks: l.picks, qty: l.qty })),
+          lines: state.lines.map((l) => ({ itemId: l.itemId, picks: l.picks, removals: l.removals, qty: l.qty })),
           expectedTotal: total()
         })
       });

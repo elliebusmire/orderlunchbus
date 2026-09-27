@@ -149,6 +149,11 @@ exports.handler = async (event) => {
 
     const choice = clean(picks.text, 120);
 
+    // Only toppings the menu lists can be left off, returned in menu order.
+    const asked = Array.isArray(line.removals) ? line.removals : [];
+    const removals = (item.removals || []).filter((r) => asked.includes(r));
+    const leaveOff = removals.map((r) => 'no ' + r.toLowerCase()).join(', ');
+
     lineItems.push({
       quantity: qty,
       price_data: {
@@ -156,7 +161,7 @@ exports.handler = async (event) => {
         unit_amount: item.price,
         product_data: {
           name: `${ev.name}, ${when}: ${item.name}`,
-          description: `Pickup: ${name}${pickup ? ' at ' + pickup : ''}${choice ? '. ' + choice : ''}`
+          description: `Pickup: ${name}${pickup ? ' at ' + pickup : ''}${choice ? '. ' + choice : ''}${leaveOff ? '. ' + leaveOff.charAt(0).toUpperCase() + leaveOff.slice(1) : ''}`
         }
       }
     });
@@ -164,7 +169,7 @@ exports.handler = async (event) => {
     /* One row per item so the sheet count is the prep count. Same eleven
        fields, same order, as lib/rows.js. Grade and note stay empty. */
     const row = [
-      ev.date, item.name, choice, '', '', name, '', allergies, 'regular', '', item.price, pickup
+      ev.date, item.name, choice, removals.map((r) => clean(r, 40)).join('+'), '', name, '', allergies, 'regular', '', item.price, pickup
     ].join('~');
     if (item.taxable !== false) taxable += item.price * qty;
     for (let q = 0; q < qty; q++) rows.push(row);

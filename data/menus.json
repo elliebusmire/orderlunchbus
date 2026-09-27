@@ -207,31 +207,29 @@
           ]
         },
         {
-          "id": "kids-plate",
-          "name": "Kids Plate",
-          "description": "A kid-size portion of tri-tip with two sides.",
-          "price": 1000,
+          "id": "bowl",
+          "name": "Tri-Tip or Chicken Bowl",
+          "description": "Rice topped with lettuce, tomatoes, cheese, and grilled onions and peppers.",
+          "price": 1600,
           "tags": [
             "contains dairy"
           ],
           "options": [
             {
-              "label": "Pick two sides",
-              "pick": 2,
+              "label": "Choose your protein",
+              "pick": 1,
               "choices": [
-                "Mashed potatoes",
-                "Corn",
-                "Fruit cup"
+                "Tri-tip",
+                "Chicken"
               ]
             }
+          ],
+          "removals": [
+            "Lettuce",
+            "Tomatoes",
+            "Cheese",
+            "Onions and peppers"
           ]
-        },
-        {
-          "id": "water",
-          "name": "Bottled Water",
-          "description": "Cold 16.9 oz bottle.",
-          "price": 200,
-          "tags": []
         }
       ]
     }

@@ -233,7 +233,7 @@
     function upcoming(meals) {
       if (!meals.length) {
         return el('p', { class: 'cart-empty' }, 'No lunches coming up. ',
-          el('a', { href: 'index.html' }, 'Pick meals on the order page'), '.');
+          el('a', { href: 'holy-trinity.html' }, 'Pick meals on the order page'), '.');
       }
       const months = new Map();
       meals.forEach((m) => {

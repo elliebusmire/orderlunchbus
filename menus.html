@@ -32,13 +32,13 @@
         <circle class="detail" cx="46" cy="43" r="2"/>
       </svg>
       <span class="wordmark-text">Lunch<span>Bus</span>
-        <span class="tagline">Hot lunch at Holy Trinity</span>
+        <span class="tagline">Hot food in El Dorado Hills</span>
       </span>
     </a>
     <nav>
-      <a href="index.html">Order</a>
-      <a href="menus.html" aria-current="page">Menus</a>
+      <a href="holy-trinity.html">Holy Trinity</a>
       <a href="taz.html">TAZ Swim Events</a>
+      <a href="menus.html" aria-current="page">Menus</a>
       <a href="about.html">About</a>
       <a href="faq.html">FAQ</a>
       <a href="contact.html">Contact</a>
@@ -78,7 +78,7 @@ fetch('data/menus.json').then(r => r.json()).then(data => {
     const sec = document.createElement('section');
     sec.className = 'past-month';
     sec.innerHTML = '<h3>' + m.label + '</h3>' +
-      (open ? '<p><a href="index.html">Open for ordering until ' + fmt(m.ordersCloseOn) + '</a></p>'
+      (open ? '<p><a href="holy-trinity.html">Open for ordering until ' + fmt(m.ordersCloseOn) + '</a></p>'
             : '<p>Ordering has closed for this month.</p>');
 
     const ul = document.createElement('ul');
@@ -96,7 +96,7 @@ fetch('data/menus.json').then(r => r.json()).then(data => {
 </script>
 <footer>
   <div class="wrap">
-    <p><strong>Lunch Bus</strong> serves Holy Trinity Catholic School, El Dorado Hills.<br>
+    <p><strong>Lunch Bus</strong> serves El Dorado Hills and surrounding areas.<br>
     Questions are answered the same school day. <a href="contact.html">Get in touch</a>.</p>
   </div>
 </footer>

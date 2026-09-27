@@ -1031,3 +1031,73 @@ footer {
 
 .portal-pickup-line { font-weight: 700; }
 .portal-tax-line { display: flex; justify-content: space-between; color: var(--moss); padding: 0 0.2rem; }
+
+/* ---------- Front door: pick where you are ordering for ---------- */
+
+body.home { padding-bottom: 0; }
+
+.chooser { padding: 2.4rem 0 3rem; }
+
+.chooser h1 {
+  font-family: Anton, Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 0 0 1.4rem;
+}
+
+.chooser-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+/* Each choice is one big link, so the whole block is the tap target. */
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 12rem;
+  padding: 1.4rem 1.4rem 1.2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 3px solid;
+}
+
+.choice-name {
+  font-family: Anton, Impact, sans-serif;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.choice-what { font-size: 1.05rem; max-width: 26ch; }
+
+.choice-go {
+  margin-top: auto;
+  align-self: flex-start;
+  font-weight: 700;
+  padding: 0.55rem 1.1rem;
+  border-radius: 2px;
+}
+
+.choice-ht { background: var(--forest); color: var(--cream); border-color: var(--gold); }
+.choice-ht .choice-name { color: var(--gold); }
+.choice-ht .choice-go { background: var(--gold); color: var(--forest); }
+
+/* TAZ navy and gold, matching the TAZ page. */
+.choice-taz { background: #13294B; color: #FFFFFF; border-color: #FFC72C; }
+.choice-taz .choice-name { color: #FFC72C; }
+.choice-taz .choice-go { background: #FFC72C; color: #13294B; }
+
+.choice:hover .choice-go { outline: 2px solid currentColor; outline-offset: 2px; }
+.choice:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.chooser-help { margin: 1.6rem 0 0; color: var(--moss); }
+.chooser-help a { font-weight: 700; }
+
+@media (max-width: 760px) {
+  .chooser { padding-top: 1.6rem; }
+  .choice { min-height: 0; }
+}

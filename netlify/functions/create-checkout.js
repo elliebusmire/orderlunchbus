@@ -281,7 +281,7 @@ exports.handler = async (event) => {
         metadata
       },
       success_url: `${site}/thanks.html?session={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${site}/index.html`
+      cancel_url: `${site}/holy-trinity.html`
     });
 
     return { statusCode: 200, body: JSON.stringify({ url: session.url }) };
