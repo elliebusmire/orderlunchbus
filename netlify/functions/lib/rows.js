@@ -8,8 +8,11 @@
 
 const FIELDS = [
   'date', 'meal', 'choice', 'removals', 'note', 'student',
-  'grade', 'allergies', 'portion', 'addOns', 'cents'
+  'grade', 'allergies', 'portion', 'addOns', 'cents', 'pickup'
 ];
+
+/* pickup was added for event orders. School rows carry eleven values and
+   older orders were written before it existed; both read back as blank. */
 
 function unpack(prefix, metadata) {
   let out = '';

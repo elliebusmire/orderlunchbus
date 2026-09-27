@@ -1,0 +1,314 @@
+/* TAZ Swim Events
+   TAZ navy and gold (edhtaz.org uses #2D68C4 royal blue, the logo is gold on
+   navy), with one pumpkin orange for Halloween-season meets.
+   The page re-points the shared palette variables, so every existing
+   component (buttons, cart, review groups, dialog) picks up TAZ colors with
+   no duplicated rules. The masthead and footer are set back to Lunch Bus
+   green so the site still reads as one business. */
+
+body.taz {
+  --forest: #13294B;       /* TAZ navy: text, borders, headers */
+  --forest-deep: #0B1A33;
+  --gold: #FFC72C;         /* TAZ gold */
+  --moss: #4A5A78;         /* secondary text on light */
+  --sage: #2D68C4;         /* TAZ royal blue */
+  --line: #CBD3E1;
+  --cream-deep: #EDF1F8;
+  --pumpkin: #F26A1B;
+  background: #F7F9FC;
+}
+
+body.taz .masthead,
+body.taz footer {
+  --forest: #1A462B;
+  --forest-deep: #12321C;
+  --gold: #D89B2C;
+  --moss: #4E6553;
+}
+
+body.taz dialog::backdrop { background: rgba(19, 41, 75, 0.65); }
+
+/* ---------- Hero ---------- */
+
+.taz-hero {
+  background: var(--forest);
+  color: #fff;
+  padding: 2.6rem 0 2.2rem;
+  border-bottom: 5px solid var(--gold);
+}
+
+.taz-kicker {
+  color: var(--gold);
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+}
+
+.taz-hero h1 {
+  font-family: Anton, Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 8vw, 4.6rem);
+  text-transform: uppercase;
+  line-height: 0.95;
+  margin: 0 0 0.6rem;
+  color: #fff;
+}
+
+.taz-lede {
+  max-width: 48ch;
+  font-size: var(--step-1);
+  color: #D5DDEB;
+  margin: 0 0 1.8rem;
+}
+
+/* The event itself is the one loud thing on the page: a gold date stub
+   torn off a navy ticket, with the meet name set big beside it. */
+.taz-event {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  background: #fff;
+  color: var(--forest);
+  border: 3px solid var(--gold);
+  border-radius: 4px;
+  max-width: 46rem;
+  overflow: hidden;
+}
+
+.taz-stub {
+  background: var(--gold);
+  color: var(--forest);
+  padding: 1rem 1.3rem;
+  text-align: center;
+  border-right: 3px dashed var(--forest);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 6.2rem;
+}
+
+.taz-stub .dow,
+.taz-stub .mon { font-weight: 700; font-size: 0.95rem; }
+
+.taz-stub .day {
+  font-family: Anton, Impact, sans-serif;
+  font-size: 3.4rem;
+  line-height: 1;
+}
+
+.taz-event-body { padding: 1rem 1.3rem 1.1rem; }
+
+.taz-event-body h2 {
+  font-family: Anton, Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.7rem, 4.5vw, 2.4rem);
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 0 0 0.3rem;
+  color: var(--forest);
+}
+
+.taz-event-body .host { color: var(--pumpkin); font-weight: 700; margin: 0 0 0.5rem; }
+.taz-event-body p { margin: 0.15rem 0; color: var(--moss); }
+
+.taz-status {
+  display: inline-block;
+  margin-top: 0.7rem !important;
+  background: var(--forest);
+  color: var(--gold) !important;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 2px;
+}
+
+.taz-status.closed { background: var(--pumpkin); color: #fff !important; }
+
+#eventSwitch { margin-top: 1rem; flex-wrap: wrap; }
+#eventSwitch:empty { display: none; }
+#eventSwitch .chip { border-color: var(--gold); }
+#eventSwitch .chip[aria-pressed="true"] { background: var(--gold); color: var(--forest); }
+
+/* ---------- Menu ---------- */
+
+.taz-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.9rem;
+}
+
+.taz-item {
+  background: #fff;
+  border: 2px solid var(--forest);
+  border-radius: 3px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.taz-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.taz-item h3 { font-size: 1.1rem; margin: 0; }
+
+.taz-price {
+  font-family: Anton, Impact, sans-serif;
+  font-size: var(--step-2);
+  line-height: 1;
+  color: var(--forest);
+}
+
+.taz-item p { margin: 0; font-size: 0.9rem; color: var(--moss); }
+.taz-item .tags { margin-top: auto; }
+.taz-item .ticket-actions { margin-top: 0.5rem; }
+.taz-item .added-note { color: var(--sage); }
+
+.taz-empty {
+  background: #fff;
+  border: 2px dashed var(--line);
+  padding: 2rem 1.4rem;
+  color: var(--moss);
+  max-width: 40rem;
+}
+
+/* ---------- Dialog ---------- */
+
+.opt-row input:disabled + label { color: var(--line); }
+
+.taz-qty-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 2px solid var(--line);
+}
+
+.taz-qty-label { font-weight: 700; }
+
+.taz-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--forest);
+  border-radius: 2px;
+  background: #fff;
+}
+
+.taz-step {
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.2rem;
+  width: 2.6rem;
+  height: 2.4rem;
+  border: none;
+  background: none;
+  color: var(--forest);
+  cursor: pointer;
+}
+
+.taz-step:disabled { color: var(--line); cursor: not-allowed; }
+
+.taz-stepper output {
+  min-width: 2.2rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.review-line .taz-stepper { flex: none; }
+.review-line .taz-step { width: 2.2rem; height: 2rem; font-size: 1.05rem; }
+
+/* ---------- Checkout details ---------- */
+
+.taz-policy {
+  margin-top: 1.6rem;
+  color: var(--moss);
+  font-size: 0.9rem;
+  max-width: 60ch;
+}
+
+.taz-policy:empty { display: none; }
+
+.field.wide { flex-basis: 100%; }
+
+@media (max-width: 760px) {
+  .taz-stub { min-width: 5rem; padding: 0.8rem; }
+  .taz-stub .day { font-size: 2.6rem; }
+  .review-line { flex-wrap: wrap; }
+  .review-line .what { flex: 1 1 100%; order: -1; }
+  .review-line .when { min-width: 0; }
+}
+
+/* ---------- Tax and pickup time ---------- */
+
+.taz-sums {
+  margin-top: 1.2rem;
+  font-size: 0.95rem;
+  color: var(--moss);
+}
+
+.taz-sums div {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.2rem 0;
+}
+
+.taz-sums + .totals { margin-top: 0.6rem; }
+
+.taz-times {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.4rem;
+}
+
+.taz-times legend {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  padding: 0;
+}
+
+.taz-time-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Real radio buttons, drawn as chips. The input stays in the layout so
+   keyboard and screen readers treat it as a normal radio group. */
+.taz-time { position: relative; }
+
+.taz-time input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.taz-time label {
+  display: block;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.55rem 1rem;
+  border: 2px solid var(--forest);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--forest);
+  cursor: pointer;
+}
+
+.taz-time input:checked + label { background: var(--forest); color: var(--gold); }
+.taz-time input:focus-visible + label { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.taz-time-note {
+  font-size: 0.82rem;
+  color: var(--moss);
+  margin: 0.5rem 0 0;
+}
+
+/* The fixed cart bar sits over the bottom of the screen. Anything scrolled
+   into view by focus or by the browser stops above it, not under it. */
+body.taz :is(input, button, select, textarea) { scroll-margin-bottom: 6rem; }

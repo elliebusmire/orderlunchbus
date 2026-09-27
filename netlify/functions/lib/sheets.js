@@ -65,7 +65,7 @@ const COLUMNS = [
   'order_id', 'ordered_at', 'parent_name', 'parent_email', 'parent_phone',
   'student_name', 'grade', 'allergies', 'service_date', 'meal', 'choice',
   'leave_off', 'special_request', 'portion', 'add_ons', 'line_total',
-  'payment_status'
+  'payment_status', 'pickup_time'
 ];
 
 function isConfigured() {

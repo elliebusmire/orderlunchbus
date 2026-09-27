@@ -27,6 +27,24 @@
 
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 'es'}`;
   const lunches = (n) => plural(n, 'lunch');
+  const items = (n) => `${n} item${n === 1 ? '' : 's'}`;
+
+  /* Pickup and cancellation wording lives in data/menus.json with the event,
+     so the confirmation page can never disagree with the order page. The
+     text already in thanks.html stays if the file does not load. */
+  async function fillEventCopy(eventId) {
+    try {
+      const data = await (await fetch('data/menus.json')).json();
+      const ev = (data.events || []).find((e) => e.id === eventId);
+      if (!ev) return;
+      ['pickup', 'policy'].forEach((key) => {
+        const node = document.querySelector(`[data-event="${key}"]`);
+        if (node && ev[key]) node.textContent = ev[key];
+      });
+    } catch {
+      /* Static copy stands. */
+    }
+  }
 
   const who = (meal) => (meal.grade ? `${meal.student}, ${meal.grade}` : meal.student);
 
@@ -46,6 +64,27 @@
   const hasAllergy = (meal) => !/^(|none|no|n\/?a|nope|nothing)\.?$/i.test(String(meal.allergies || '').trim());
   const allergyClass = (base, meal) => base + (hasAllergy(meal) ? ' is-allergy' : '');
 
+  /* Event orders hold one row per item, so four identical plates arrive as
+     four rows. Folded into one line with a count for display. School orders
+     never repeat a student on a date, so this leaves them as they were. */
+  function collapse(meals) {
+    const out = [];
+    const byKey = new Map();
+    meals.forEach((m) => {
+      const key = JSON.stringify([m.date, m.student, m.meal, m.choice, m.leaveOff, m.request, m.double, m.addOns, m.amount, m.pickup]);
+      if (byKey.has(key)) {
+        byKey.get(key).count += 1;
+      } else {
+        const copy = Object.assign({}, m, { count: 1 });
+        byKey.set(key, copy);
+        out.push(copy);
+      }
+    });
+    return out;
+  }
+
+  const counted = (meal, text) => (meal.count > 1 ? `${meal.count} \u00d7 ${text}` : text);
+
   /* ---------- a list of meals, one line each ---------- */
 
   function mealLine(meal, showStudent) {
@@ -53,11 +92,12 @@
     return el('div', { class: 'review-line' },
       el('span', { class: 'when' }, meal.dateLabel),
       el('span', { class: 'what' },
-        mealTitle(meal),
+        counted(meal, mealTitle(meal)),
         showStudent ? el('span', { class: 'extras' }, 'For ' + who(meal)) : null,
+        showStudent && meal.pickup ? el('span', { class: 'extras' }, 'Pickup at ' + meal.pickup) : null,
         add ? el('span', { class: 'extras' }, add) : null,
         meal.request ? el('span', { class: 'extras' }, 'Request: ' + meal.request) : null),
-      el('span', {}, money(meal.amount)));
+      el('span', {}, money(meal.amount * (meal.count || 1))));
   }
 
   /* ---------- thanks.html ---------- */
@@ -83,23 +123,35 @@
     });
 
     const paid = order.paymentStatus === 'paid';
+    const isEvent = order.kind === 'event';
+
+    if (isEvent) showEventCopy(order.eventId);
+
+    const heading = isEvent
+      ? `${items(order.meals.length)} for pickup${order.eventName ? ' at ' + order.eventName : ''}`
+      : `${lunches(order.meals.length)} ordered`;
 
     box.replaceChildren(...[
-      el('h2', { class: 'section-head' }, `${lunches(order.meals.length)} ordered`),
+      el('h2', { class: 'section-head' }, heading),
       paid ? null : el('p', { class: 'portal-pending' },
         'Your bank payment is still processing. These lunches are held for you and we will confirm by email once it clears.'),
       [...byStudent.entries()].map(([name, meals]) => el('div', { class: 'review-group' },
-        el('h3', {}, name,
+        el('h3', {}, isEvent ? 'Pickup name: ' + name : name,
           el('span', { class: 'group-sum' },
-            `${meals.length} ${meals.length === 1 ? 'meal' : 'meals'}, ${money(meals.reduce((s, m) => s + m.amount, 0))}`)),
+            `${meals.length} ${isEvent ? (meals.length === 1 ? 'item' : 'items') : (meals.length === 1 ? 'meal' : 'meals')}, ${money(meals.reduce((s, m) => s + m.amount, 0))}`)),
+        isEvent && meals[0].pickup ? el('div', { class: 'review-line portal-pickup-line' }, 'Pickup at ' + meals[0].pickup) : null,
         el('div', { class: allergyClass('review-line portal-allergy-line', meals[0]) }, allergyText(meals[0])),
-        meals.map((m) => mealLine(m, false)))),
+        collapse(meals).map((m) => mealLine(m, false)))),
+      order.taxCents > 0
+        ? el('div', { class: 'portal-tax-line' },
+          el('span', {}, order.taxLabel || 'Sales tax'), el('span', {}, money(order.taxCents)))
+        : null,
       el('div', { class: 'totals' }, el('span', {}, paid ? 'Total paid' : 'Total'), el('span', {}, money(order.total))),
       order.receiptUrl
         ? el('p', { class: 'portal-receipt' }, el('a', { href: order.receiptUrl, target: '_blank', rel: 'noopener' }, 'Open your Stripe receipt'))
         : null,
       el('p', {}, 'Check the allergies above. If anything is wrong, ',
-        el('a', { href: 'contact.html' }, 'get in touch'), ' before the lunch date.')
+        el('a', { href: 'contact.html' }, 'get in touch'), isEvent ? ' before the meet.' : ' before the lunch date.')
     ].flat().filter(Boolean));
   }
 
@@ -166,11 +218,12 @@
           el('span', { class: 'dow' }, d.toLocaleDateString('en-US', { weekday: 'short' })),
           d.getDate()),
         el('div', { class: 'portal-lines' },
-          meals.map((m) => {
+          collapse(meals).map((m) => {
             const add = extras(m);
             return el('div', { class: 'portal-line' },
-              el('h3', { class: 'mealname' }, mealTitle(m)),
+              el('h3', { class: 'mealname' }, counted(m, mealTitle(m))),
               el('p', { class: 'mealdesc portal-who' }, who(m)),
+              m.pickup ? el('p', { class: 'mealdesc' }, 'Pickup at ' + m.pickup) : null,
               add ? el('p', { class: 'mealdesc' }, add) : null,
               m.request ? el('p', { class: 'mealdesc' }, 'Request: ' + m.request) : null,
               el('p', { class: allergyClass('portal-allergy', m) }, allergyText(m)));
@@ -198,17 +251,18 @@
     function orderGroup(order) {
       const placed = new Date(order.placedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const paid = order.paymentStatus === 'paid';
+      const count = order.kind === 'event' ? items(order.meals.length) : lunches(order.meals.length);
       return el('div', { class: 'review-group' },
-        el('h3', {}, `Placed ${placed}`,
-          el('span', { class: 'group-sum' }, `${lunches(order.meals.length)}, ${money(order.total)}`)),
+        el('h3', {}, order.kind === 'event' && order.eventName ? `${order.eventName}, placed ${placed}` : `Placed ${placed}`,
+          el('span', { class: 'group-sum' }, `${count}, ${money(order.total)}`)),
         el('div', { class: 'review-line portal-order-meta' },
           el('span', { class: paid ? 'portal-paid' : 'portal-pending-tag' }, paid ? 'Paid' : 'Payment processing'),
           order.receiptUrl
             ? el('a', { href: order.receiptUrl, target: '_blank', rel: 'noopener' }, 'Open receipt')
             : null),
         el('details', {},
-          el('summary', {}, `Show the ${lunches(order.meals.length)}`),
-          order.meals.map((m) => mealLine(m, true))));
+          el('summary', {}, `Show the ${count}`),
+          collapse(order.meals).map((m) => mealLine(m, true))));
     }
 
     function signedIn(data) {
@@ -250,8 +304,23 @@
     load();
   }
 
+  function showEventCopy(eventId) {
+    const lunchCopy = document.getElementById('lunchCopy');
+    const eventCopy = document.getElementById('eventCopy');
+    if (!eventCopy || !eventCopy.hidden) return;
+    if (lunchCopy) lunchCopy.hidden = true;
+    eventCopy.hidden = false;
+    fillEventCopy(eventId);
+  }
+
   const summary = document.getElementById('orderSummary');
-  if (summary) showConfirmation(summary);
+  if (summary) {
+    // Event checkouts return with for=event, so the right wording shows at once
+    // and stays right even if the order details fail to load.
+    const params = new URLSearchParams(location.search);
+    if (params.get('for') === 'event') showEventCopy(params.get('event') || '');
+    showConfirmation(summary);
+  }
 
   const root = document.getElementById('portal');
   if (root) portal(root);

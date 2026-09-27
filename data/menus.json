@@ -162,5 +162,78 @@
       "ordersCloseOn": "2026-10-24",
       "days": []
     }
+  ],
+  "events": [
+    {
+      "id": "taz-2026-10-17",
+      "name": "Monster Splash Swim Meet",
+      "host": "TAZ Swim Team",
+      "published": true,
+      "orderingOpen": false,
+      "date": "2026-10-17",
+      "timeLabel": "Evening meet",
+      "location": "EDH community pool, 1021 Harvard Way, El Dorado Hills",
+      "closesOn": "2026-10-17",
+      "closesHour": 12,
+      "pickupTimes": [
+        "5:00 pm",
+        "5:30 pm",
+        "6:00 pm",
+        "6:30 pm"
+      ],
+      "taxRate": 725,
+      "taxLabel": "Sales tax (7.25%)",
+      "pickup": "Come to the Lunch Bus trailer by the pool and give the name on your order at the pre-order window. Your food is packed and waiting, so you skip the line.",
+      "policy": "Orders are final once paid. If the meet is canceled, we will refund every pre-order in full.",
+      "maxPerOrder": 40,
+      "items": [
+        {
+          "id": "tt-sandwich",
+          "name": "Tri-Tip Sandwich",
+          "description": "Sliced tri-tip on a toasted roll, with a half ear of buttered corn and a fruit cup.",
+          "price": 1500,
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ]
+        },
+        {
+          "id": "tt-plate",
+          "name": "Tri-Tip Plate",
+          "description": "Sliced tri-tip with mashed potatoes, a half ear of buttered corn and a fruit cup.",
+          "price": 1800,
+          "tags": [
+            "contains dairy"
+          ]
+        },
+        {
+          "id": "kids-plate",
+          "name": "Kids Plate",
+          "description": "A kid-size portion of tri-tip with two sides.",
+          "price": 1000,
+          "tags": [
+            "contains dairy"
+          ],
+          "options": [
+            {
+              "label": "Pick two sides",
+              "pick": 2,
+              "choices": [
+                "Mashed potatoes",
+                "Corn",
+                "Fruit cup"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "water",
+          "name": "Bottled Water",
+          "description": "Cold 16.9 oz bottle.",
+          "price": 200,
+          "tags": []
+        }
+      ]
+    }
   ]
 }

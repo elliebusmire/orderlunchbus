@@ -84,8 +84,11 @@ Put these headers in row 1 of Sheet1, in this order, before you connect Zapier. 
 ```
 order_id | ordered_at | parent_name | parent_email | parent_phone |
 student_name | grade | allergies | service_date | meal | choice |
-leave_off | special_request | portion | add_ons | line_total | payment_status
+leave_off | special_request | portion | add_ons | line_total | payment_status |
+pickup_time
 ```
+
+`pickup_time` is only filled for TAZ event orders. On an existing sheet, type `pickup_time` into the first empty header cell (column R) before the first event order comes in.
 
 One row per meal per student. A parent buying eight lunches for two kids creates sixteen rows. To get a prep list for a given day, filter `service_date`. To see one family's whole order, filter `order_id`. On pizza and sandwich days, count the `choice` column to know how much pepperoni and how much turkey to buy.
 
@@ -238,6 +241,42 @@ Edit `settings` in `data/menus.json`. Amounts are in cents.
   { "id": "juice", "label": "Juice box", "price": 200 }
 ]
 ```
+
+## TAZ swim events
+
+`taz.html` takes pre-orders for TAZ swim meets at the EDH pool. It runs on the same Stripe account, the same webhook, the same sheet, the same `thanks.html` and the same My orders page as school lunches. The only new server file is `netlify/functions/create-event-checkout.js`, kept separate so the school checkout is never touched by event changes.
+
+Each meet is one block in the `events` list in `data/menus.json`:
+
+```json
+{
+  "id": "taz-2026-10-17",
+  "name": "Monster Splash Swim Meet",
+  "published": true,
+  "orderingOpen": true,
+  "date": "2026-10-17",
+  "closesOn": "2026-10-17",
+  "closesHour": 12,
+  "maxPerOrder": 40,
+  "items": [
+    { "id": "tt-plate", "name": "Tri-Tip Plate", "description": "...", "price": 1800, "tags": ["contains dairy"] },
+    { "id": "kids-plate", "name": "Kids Plate", "description": "...", "price": 1000,
+      "options": [{ "label": "Pick two sides", "pick": 2, "choices": ["Mashed potatoes", "Corn", "Fruit cup"] }] }
+  ]
+}
+```
+
+Prices are in cents and set per item. `closesHour` is 24-hour Pacific time; 12 closes pre-orders at noon on `closesOn`. `orderingOpen: false` shows the menu with ordering switched off. `pickup` and `policy` are the wording shown on the page and on the confirmation. Once the meet date passes it drops off the page by itself. Add the next meet as another block with a new `id`; if two are upcoming, parents get a switch at the top.
+
+`pickupTimes` is the list parents choose from, and one is required at checkout. It lands in the `pickup_time` column, so sorting the meet's rows by it gives you a packing order.
+
+`taxRate` is in basis points: 725 is 7.25%. Tax is charged on the order subtotal, rounded to the cent, and shows as its own line on the Stripe receipt with `taxLabel` as its name. The amount is also stored in the session metadata as `tax_cents` for reporting. Mark an item `"taxable": false` to leave it out of the taxed subtotal. School lunches are not taxed and are not affected.
+
+Items with no `options` add in one tap. Items with `options` open a picker; `pick` is how many choices are required.
+
+**In the sheet.** Event orders land in the same tab, one row per item. `service_date` is the meet date, `student_name` is the pickup name, `choice` holds the sides, and `grade` is blank. Filter `service_date` to get the meet's prep list and count `meal` and `choice` for quantities.
+
+**In Stripe.** Event sessions carry the same `business` tag plus `kind: event`, `event_id` and `event_name` in metadata, so you can filter them in the dashboard.
 
 ## Running it locally
 

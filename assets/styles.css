@@ -1026,3 +1026,8 @@ footer {
   .portal-ticket .daynum { flex: 0 0 2.8rem; }
   .review-line .when { min-width: 5.2rem; }
 }
+
+/* ---------- Event orders on thanks and My orders ---------- */
+
+.portal-pickup-line { font-weight: 700; }
+.portal-tax-line { display: flex; justify-content: space-between; color: var(--moss); padding: 0 0.2rem; }

@@ -49,12 +49,21 @@ function toOrder(session) {
       allergies: r.allergies,
       double: r.portion === 'double',
       addOns: r.addOns.map(addOnLabel),
-      amount: r.cents
+      amount: r.cents,
+      pickup: r.pickup
     }))
     .sort((a, b) => a.date.localeCompare(b.date) || a.student.localeCompare(b.student));
 
   return {
     id: session.id,
+    // Event orders (TAZ meets) share this path. The confirmation page uses
+    // these two fields to show pickup wording instead of school wording.
+    kind: md.kind === 'event' ? 'event' : 'lunch',
+    eventId: md.event_id || '',
+    eventName: md.event_name || '',
+    pickupTime: md.pickup_time || '',
+    taxCents: Number(md.tax_cents) || 0,
+    taxLabel: md.tax_label || '',
     placedAt: new Date(session.created * 1000).toISOString(),
     email: (session.customer_details && session.customer_details.email) || md.parent_email || '',
     parentName: md.parent_name || '',

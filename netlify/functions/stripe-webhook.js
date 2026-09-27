@@ -68,7 +68,8 @@ exports.handler = async (event) => {
     portion: r.portion,
     add_ons: r.addOns.join(', '),
     line_total: (r.cents / 100).toFixed(2),
-    payment_status: session.payment_status
+    payment_status: session.payment_status,
+    pickup_time: r.pickup
   }));
 
   /* Preferred path: write straight to the sheet. One API call per order
