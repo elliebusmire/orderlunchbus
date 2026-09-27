@@ -261,7 +261,8 @@
           "name": "Bottled Water",
           "description": "Cold 16.9 oz bottle.",
           "price": 200,
-          "tags": []
+          "tags": [],
+          "taxable": false
         },
         {
           "id": "soda",
@@ -269,7 +270,8 @@
           "name": "Soda",
           "description": "Cold 12 oz can.",
           "price": 300,
-          "tags": []
+          "tags": [],
+          "taxable": false
         },
         {
           "id": "iced-tea",
@@ -277,7 +279,8 @@
           "name": "Iced Tea",
           "description": "Cold bottled iced tea.",
           "price": 300,
-          "tags": []
+          "tags": [],
+          "taxable": false
         },
         {
           "id": "la-croix",
@@ -285,7 +288,8 @@
           "name": "La Croix",
           "description": "Cold 12 oz can of sparkling water.",
           "price": 300,
-          "tags": []
+          "tags": [],
+          "taxable": false
         },
         {
           "id": "chips",
@@ -303,7 +307,8 @@
                 "Lay's BBQ"
               ]
             }
-          ]
+          ],
+          "taxable": false
         }
       ]
     }
