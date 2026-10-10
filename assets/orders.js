@@ -100,6 +100,70 @@
       el('span', {}, money(meal.amount * (meal.count || 1))));
   }
 
+  /* ---------- add to calendar ---------- */
+
+  /* One tap opens a choice of calendar. Apple and Outlook take the .ics file
+     from order-calendar, which holds every date at once. Google has no way to
+     add several events from one link, so it gets a link per date. The option
+     that matches the device is listed first. */
+  function calendarBlock(order, session) {
+    const byDate = new Map();
+    order.meals.forEach((m) => {
+      if (!byDate.has(m.date)) byDate.set(m.date, []);
+      byDate.get(m.date).push(m);
+    });
+    const dates = [...byDate.keys()].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    if (!dates.length) return null;
+
+    const icsUrl = '/.netlify/functions/order-calendar?session=' + encodeURIComponent(session);
+    const compact = (iso) => iso.replace(/-/g, '');
+    const nextDay = (iso) => {
+      const d = parse(iso);
+      d.setDate(d.getDate() + 1);
+      return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    };
+    const googleUrl = (date) => {
+      const meals = byDate.get(date);
+      const names = [...new Set(meals.map((m) => m.student).filter(Boolean))];
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: 'Hot lunch ordered' + (names.length ? ` (${names.join(', ')})` : ''),
+        dates: compact(date) + '/' + nextDay(date),
+        details: meals.map((m) => `${m.student}: ${mealTitle(m)}`).join('\n') +
+          '\n\nNo need to pack a lunch. Lunch Bus delivers by grade at Holy Trinity.',
+        location: 'Holy Trinity Catholic School'
+      });
+      return 'https://calendar.google.com/calendar/render?' + params.toString();
+    };
+    const dayName = (iso) => parse(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+    const apple = el('a', { class: 'cal-option', href: icsUrl },
+      el('strong', {}, 'Apple Calendar'), el('span', {}, 'iPhone, iPad and Mac'));
+
+    const google = dates.length === 1
+      ? el('a', { class: 'cal-option', href: googleUrl(dates[0]), target: '_blank', rel: 'noopener' },
+        el('strong', {}, 'Google Calendar'), el('span', {}, 'Android and Gmail'))
+      : el('div', { class: 'cal-option cal-google' },
+        el('strong', {}, 'Google Calendar'),
+        el('span', {}, 'Android and Gmail. Tap each date to add it.'),
+        el('span', { class: 'cal-dates' }, dates.map((d) =>
+          el('a', { class: 'chip', href: googleUrl(d), target: '_blank', rel: 'noopener' }, dayName(d)))));
+
+    const outlook = el('a', { class: 'cal-option', href: icsUrl },
+      el('strong', {}, 'Outlook'), el('span', {}, 'Windows and other calendars'));
+
+    const ua = navigator.userAgent || '';
+    const options = /Android/i.test(ua) ? [google, apple, outlook]
+      : /Windows/i.test(ua) ? [outlook, google, apple]
+        : [apple, google, outlook];
+
+    return el('details', { class: 'cal-add' },
+      el('summary', { class: 'btn primary' }, '\u{1F4C5} Add to calendar'),
+      el('div', { class: 'cal-menu' },
+        el('p', {}, `Marks ${dates.length === 1 ? 'the day' : `all ${dates.length} days`} as "Hot lunch ordered" so nobody packs a lunch, with a reminder the evening before. Pick your calendar:`),
+        options));
+  }
+
   /* ---------- thanks.html ---------- */
 
   async function showConfirmation(box) {
@@ -147,6 +211,7 @@
           el('span', {}, order.taxLabel || 'Sales tax'), el('span', {}, money(order.taxCents)))
         : null,
       el('div', { class: 'totals' }, el('span', {}, paid ? 'Total paid' : 'Total'), el('span', {}, money(order.total))),
+      isEvent ? null : calendarBlock(order, session),
       order.receiptUrl
         ? el('p', { class: 'portal-receipt' }, el('a', { href: order.receiptUrl, target: '_blank', rel: 'noopener' }, 'Open your Stripe receipt'))
         : null,
