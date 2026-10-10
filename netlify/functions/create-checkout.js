@@ -210,7 +210,7 @@ exports.handler = async (event) => {
     const extras = [];
     if (choice) extras.push(choice.toLowerCase());
     removals.forEach((r) => extras.push('no ' + r.toLowerCase()));
-    if (double) extras.push('double portion');
+    if (double) extras.push('extra portion');
     addOns.forEach((id) => extras.push(s.addOns.find((a) => a.id === id).label.toLowerCase()));
 
     const pretty = new Date(item.date + 'T12:00:00').toLocaleDateString('en-US', {
@@ -238,7 +238,7 @@ exports.handler = async (event) => {
       student.name,
       student.grade || '',
       student.allergies || '',
-      double ? 'double' : 'regular',
+      double ? 'extra' : 'regular',
       addOns.join('+'),
       cents
     ].join('~'));
