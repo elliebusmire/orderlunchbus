@@ -546,6 +546,52 @@ footer {
   color: var(--moss);
 }
 
+/* ---------- Month picker ---------- */
+
+.month-picker[hidden],
+#orderFlow[hidden],
+#deadlineRow[hidden] { display: none; }
+
+.month-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.month-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.2rem 1.3rem;
+  background: var(--white);
+  border: 2px solid var(--forest);
+  border-top: 6px solid var(--gold);
+  color: var(--forest);
+  text-decoration: none;
+}
+
+.month-card:hover,
+.month-card:focus-visible { border-color: var(--forest-deep); box-shadow: 4px 4px 0 var(--forest); }
+
+.month-card.late { border-top-color: var(--clay); }
+.month-card.closed { border-top-color: var(--line); }
+
+.month-card-name {
+  font-family: Anton, Impact, sans-serif;
+  font-size: var(--step-3);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.month-card-span { font-size: 0.9rem; color: var(--moss); }
+
+.month-card-status { font-weight: 700; flex: 1; }
+.month-card.late .month-card-status { color: var(--clay); }
+
+.month-card .btn { align-self: flex-start; margin-top: 0.4rem; }
+.month-card:hover .btn.primary { background: var(--forest-deep); color: var(--gold); border-color: var(--forest-deep); }
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 760px) {

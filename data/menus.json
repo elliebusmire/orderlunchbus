@@ -158,9 +158,72 @@
     {
       "id": "2026-11",
       "label": "November 2026",
-      "published": false,
-      "ordersCloseOn": "2026-10-24",
-      "days": []
+      "published": true,
+      "ordersCloseOn": "2026-10-31",
+      "days": [
+        {
+          "date": "2026-11-03",
+          "meal": "Chicken or Steak Burrito",
+          "description": "Burrito with tortilla chips and fresh fruit.",
+          "choiceLabel": "Pick a protein",
+          "choices": [
+            "Chicken",
+            "Steak"
+          ],
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ]
+        },
+        {
+          "date": "2026-11-05",
+          "meal": "Chicken Nuggets and Fries",
+          "description": "Chicken nuggets with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        },
+        {
+          "date": "2026-11-10",
+          "meal": "Corn Dogs and Fries",
+          "description": "Corn dogs with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        },
+        {
+          "date": "2026-11-12",
+          "meal": "Mac and Cheese Bowl",
+          "description": "Mac and cheese with a veggie and fresh fruit.",
+          "tags": [
+            "vegetarian",
+            "contains wheat",
+            "contains dairy"
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "meal": "Breakfast for Lunch!",
+          "description": "Pancakes with sausage or bacon and fresh fruit.",
+          "choiceLabel": "Pick a side",
+          "choices": [
+            "Sausage",
+            "Bacon"
+          ],
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ]
+        },
+        {
+          "date": "2026-11-19",
+          "meal": "Hot Dogs and Fries",
+          "description": "Hot dog with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        }
+      ]
     }
   ],
   "events": [

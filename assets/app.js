@@ -105,17 +105,102 @@ async function boot() {
   const res = await fetch('data/menus.json');
   state.data = await res.json();
 
-  const open = state.data.months.filter(monthHasOpenDays);
-  const fallback = state.data.months.filter((m) => m.published);
-  state.monthId = (open[0] || fallback[fallback.length - 1]).id;
-
   applyOrderingState();
   restore();
   renderStudents();
-  renderMonth();
-  renderCart();
   wireStudentForm();
   wireDialog();
+
+  state.monthId = monthFromUrl();
+  showView();
+  window.addEventListener('popstate', () => {
+    state.monthId = monthFromUrl();
+    showView();
+  });
+}
+
+/* ---------- month picker ---------- */
+
+/* The page opens on a list of months and the parent picks one before seeing
+   its calendar. The choice lives in ?month= so the back button returns to the
+   list, and switching is done in place so the cart survives it. */
+const monthFromUrl = () => {
+  const id = new URLSearchParams(window.location.search).get('month');
+  const month = state.data.months.find((m) => m.id === id && m.published);
+  return month ? month.id : null;
+};
+
+/* A month drops off the list once its last meal has been served. */
+const pickableMonths = () => {
+  const today = todayISO();
+  return state.data.months.filter((m) =>
+    m.published && (m.days.length === 0 || m.days[m.days.length - 1].date >= today));
+};
+
+function goToMonth(id) {
+  state.monthId = id;
+  const url = new URL(window.location.href);
+  if (id) url.searchParams.set('month', id);
+  else url.searchParams.delete('month');
+  history.pushState(null, '', url);
+  showView();
+  window.scrollTo(0, 0);
+}
+
+function showView() {
+  const picking = !state.monthId;
+  document.getElementById('monthPicker').hidden = !picking;
+  document.getElementById('orderFlow').hidden = picking;
+  document.getElementById('deadlineRow').hidden = picking;
+
+  if (picking) renderMonthPicker();
+  else renderMonth();
+  renderCart();
+}
+
+function monthStatus(month) {
+  const s = state.data.settings;
+  if (month.days.length === 0) return { text: 'Menu coming soon', open: false };
+  if (!orderingOpen()) return { text: opensTitle(), open: false };
+  if (!monthHasOpenDays(month)) return { text: 'Ordering has closed', open: false };
+  if (isLate(month)) {
+    return { text: `Still open. Pre-order deadline passed, so meals are ${money(s.latePrice)} each.`, open: true, late: true };
+  }
+  return { text: `Pre-order by ${dayLabel(month.ordersCloseOn)} and pay ${money(s.mealPrice)} a meal`, open: true };
+}
+
+function renderMonthPicker() {
+  const wrap = document.getElementById('monthCards');
+  wrap.innerHTML = '';
+
+  const months = pickableMonths();
+  if (months.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">The next menu has not been posted yet. Check back soon.</p>';
+    return;
+  }
+
+  months.forEach((m) => {
+    const status = monthStatus(m);
+    const name = m.label.replace(/ \d{4}$/, '');
+    const span = m.days.length
+      ? `${dayLabel(m.days[0].date)} to ${dayLabel(m.days[m.days.length - 1].date)} &middot; ${m.days.length} lunches`
+      : 'Menu not posted yet';
+
+    const card = document.createElement('a');
+    card.className = 'month-card' + (status.open ? '' : ' closed') + (status.late ? ' late' : '');
+    card.href = '?month=' + encodeURIComponent(m.id);
+    card.innerHTML = `
+      <span class="month-card-name">${esc(m.label)}</span>
+      <span class="month-card-span">${span}</span>
+      <span class="month-card-status">${esc(status.text)}</span>
+      <span class="btn ${status.open ? 'primary' : 'ghost'}">${status.open ? 'Order for ' + esc(name) : 'See the menu'}</span>
+    `;
+    card.onclick = (e) => {
+      e.preventDefault();
+      goToMonth(m.id);
+    };
+    wrap.appendChild(card);
+  });
 }
 
 /* ---------- persistence (in-memory for the session only) ---------- */
@@ -356,21 +441,13 @@ function renderMonth() {
 function renderMonthSwitch() {
   const wrap = document.getElementById('monthSwitch');
   wrap.innerHTML = '';
-  state.data.months
-    .filter((m) => m.published)
-    .forEach((m) => {
-      const b = document.createElement('button');
-      b.className = 'chip';
-      b.type = 'button';
-      b.setAttribute('aria-pressed', String(m.id === state.monthId));
-      b.textContent = m.label.replace(' 2026', '') +
-        (monthHasOpenDays(m) && isLate(m) ? ' (late)' : '');
-      b.onclick = () => {
-        state.monthId = m.id;
-        renderMonth();
-      };
-      wrap.appendChild(b);
-    });
+  if (pickableMonths().length < 2) return;
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.type = 'button';
+  b.textContent = '\u2190 Choose a different month';
+  b.onclick = () => goToMonth(null);
+  wrap.appendChild(b);
 }
 
 function ticket(day, month) {
@@ -766,7 +843,12 @@ async function checkout(button) {
   }
 }
 
+/* The cart is shared across months, so from the month list the bar opens the
+   month of the most recent meal and jumps to the order review. */
 document.getElementById('cartJump').onclick = () => {
+  if (!state.monthId && state.cart.length) {
+    goToMonth(state.cart[state.cart.length - 1].monthId);
+  }
   document.getElementById('review').scrollIntoView({ behavior: 'smooth' });
 };
 
