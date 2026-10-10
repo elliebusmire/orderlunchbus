@@ -41,6 +41,26 @@ const nextDay = (iso) => {
 
 const mealTitle = (meal) => (meal.choice ? `${meal.meal} (${meal.choice})` : meal.meal);
 
+// "Sam", "Sam and Ava", "Sam, Ava and Ben"
+const joinNames = (names) =>
+  names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+
+const firstName = (name) => String(name || '').trim().split(/\s+/)[0];
+
+/* Only the students with a meal that day are named in the title. A sibling
+   on the same order who skipped that day gets a "pack a lunch" line, so a
+   family with several kids can see at a glance who still needs one. */
+function dayText(meals, allStudents) {
+  const names = [...new Set(meals.map((m) => m.student).filter(Boolean))];
+  const skipped = allStudents.filter((n) => !names.includes(n));
+  const summary = 'Hot lunch ordered' + (names.length ? ' for ' + joinNames(names.map(firstName)) : '');
+  const details = meals.map((m) => `${m.student}: ${mealTitle(m)}`)
+    .concat(skipped.length ? ['', `Pack a lunch for ${joinNames(skipped)}. No hot lunch ordered today.`] : [])
+    .concat('', `No need to pack a lunch for ${joinNames(names) || 'this order'}. Lunch Bus delivers by grade at Holy Trinity.`)
+    .join('\n');
+  return { summary, details, skipped };
+}
+
 function buildCalendar(order) {
   const byDate = new Map();
   order.meals.forEach((m) => {
@@ -59,12 +79,11 @@ function buildCalendar(order) {
     'X-WR-CALNAME:Lunch Bus hot lunch'
   ];
 
+  const allStudents = [...new Set(order.meals.map((m) => m.student).filter(Boolean))];
+
   [...byDate.entries()].sort(([a], [b]) => a.localeCompare(b)).forEach(([date, meals]) => {
-    const names = [...new Set(meals.map((m) => m.student).filter(Boolean))];
-    const summary = 'Hot lunch ordered' + (names.length ? ` (${names.join(', ')})` : '');
-    const details = meals.map((m) => `${m.student}: ${mealTitle(m)}`)
-      .concat('', 'No need to pack a lunch. Lunch Bus delivers by grade at Holy Trinity.')
-      .join('\n');
+    const { summary, details, skipped } = dayText(meals, allStudents);
+    const reminder = 'Hot lunch tomorrow' + (skipped.length ? `. Pack a lunch for ${joinNames(skipped)}.` : '. No need to pack a lunch.');
 
     lines.push(
       'BEGIN:VEVENT',
@@ -78,7 +97,7 @@ function buildCalendar(order) {
       'TRANSP:TRANSPARENT',
       'BEGIN:VALARM',
       'ACTION:DISPLAY',
-      `DESCRIPTION:${esc('Hot lunch tomorrow. No need to pack a lunch.')}`,
+      `DESCRIPTION:${esc(reminder)}`,
       'TRIGGER:-PT3H', // 9 pm the evening before
       'END:VALARM',
       'END:VEVENT'
@@ -113,3 +132,4 @@ exports.handler = async (event) => {
 };
 
 exports.buildCalendar = buildCalendar;
+exports.dayText = dayText;

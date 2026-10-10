@@ -122,15 +122,25 @@
       d.setDate(d.getDate() + 1);
       return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
     };
+    /* Same wording as order-calendar: the title names only the kids eating
+       hot lunch that day, and a sibling who skipped it gets a pack-a-lunch line. */
+    const joinNames = (names) =>
+      names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+    const firstName = (name) => String(name || '').trim().split(/\s+/)[0];
+    const allStudents = [...new Set(order.meals.map((m) => m.student).filter(Boolean))];
     const googleUrl = (date) => {
       const meals = byDate.get(date);
       const names = [...new Set(meals.map((m) => m.student).filter(Boolean))];
+      const skipped = allStudents.filter((n) => !names.includes(n));
+      const details = meals.map((m) => `${m.student}: ${mealTitle(m)}`)
+        .concat(skipped.length ? ['', `Pack a lunch for ${joinNames(skipped)}. No hot lunch ordered today.`] : [])
+        .concat('', `No need to pack a lunch for ${joinNames(names) || 'this order'}. Lunch Bus delivers by grade at Holy Trinity.`)
+        .join('\n');
       const params = new URLSearchParams({
         action: 'TEMPLATE',
-        text: 'Hot lunch ordered' + (names.length ? ` (${names.join(', ')})` : ''),
+        text: 'Hot lunch ordered' + (names.length ? ' for ' + joinNames(names.map(firstName)) : ''),
         dates: compact(date) + '/' + nextDay(date),
-        details: meals.map((m) => `${m.student}: ${mealTitle(m)}`).join('\n') +
-          '\n\nNo need to pack a lunch. Lunch Bus delivers by grade at Holy Trinity.',
+        details,
         location: 'Holy Trinity Catholic School'
       });
       return 'https://calendar.google.com/calendar/render?' + params.toString();
@@ -160,7 +170,7 @@
     return el('details', { class: 'cal-add' },
       el('summary', { class: 'btn primary' }, '\u{1F4C5} Add to calendar'),
       el('div', { class: 'cal-menu' },
-        el('p', {}, `Marks ${dates.length === 1 ? 'the day' : `all ${dates.length} days`} as "Hot lunch ordered" so nobody packs a lunch, with a reminder the evening before. Pick your calendar:`),
+        el('p', {}, `Marks ${dates.length === 1 ? 'the day' : `all ${dates.length} days`} as "Hot lunch ordered for" the kids eating that day, so you know who needs a packed lunch. Apple and Outlook also remind you the evening before. Pick your calendar:`),
         options));
   }
 
