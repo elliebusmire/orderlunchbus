@@ -523,7 +523,7 @@ function openDialog(day) {
   }
 
   opts.appendChild(
-    optionRow('double', 'double', 'Double portion', state.data.settings.doublePortionPrice)
+    optionRow('double', 'double', 'Extra portion', state.data.settings.doublePortionPrice)
   );
   state.data.settings.addOns.forEach((a) => {
     opts.appendChild(optionRow('addon', a.id, a.label, a.price));
@@ -662,7 +662,7 @@ function renderCart() {
         const extras = [];
         if (item.choice) extras.push(item.choice.toLowerCase());
         (item.removals || []).forEach((r) => extras.push('no ' + r.toLowerCase()));
-        if (item.double) extras.push('double portion');
+        if (item.double) extras.push('extra portion');
         item.addOns.forEach((id) => {
           const a = state.data.settings.addOns.find((x) => x.id === id);
           if (a) extras.push(a.label.toLowerCase());

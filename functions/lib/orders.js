@@ -47,7 +47,7 @@ function toOrder(session) {
       student: r.student,
       grade: r.grade,
       allergies: r.allergies,
-      double: r.portion === 'double',
+      double: r.portion === 'extra' || r.portion === 'double',
       addOns: r.addOns.map(addOnLabel),
       amount: r.cents
     }))

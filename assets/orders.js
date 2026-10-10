@@ -53,7 +53,7 @@
   function extras(meal) {
     const list = [];
     (meal.leaveOff || []).forEach((r) => list.push('no ' + r.toLowerCase()));
-    if (meal.double) list.push('double portion');
+    if (meal.double) list.push('extra portion');
     (meal.addOns || []).forEach((a) => list.push(a.toLowerCase()));
     return list.join(', ');
   }
