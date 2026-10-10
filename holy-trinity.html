@@ -53,7 +53,7 @@
   <div class="wrap">
     <h1>Order hot lunches by the month</h1>
     <p>Lunch Bus is a food trailer that parks at Holy Trinity twice a week and cooks on site before lunch. Choose the days you want and your student picks up by name.</p>
-    <p><span class="deadline" id="deadline">Loading</span></p>
+    <p id="deadlineRow" hidden><span class="deadline" id="deadline">Loading</span></p>
 
     <div class="facts">
       <div class="fact"><span class="k">$8</span><span class="v">Per meal when you pre-order</span></div>
@@ -62,6 +62,16 @@
     </div>
   </div>
 </section>
+
+<section class="month-picker" id="monthPicker" hidden>
+  <div class="wrap">
+    <h2 class="step-title">Choose a month
+      <span class="hint">Each month has its own menu and pre-order deadline</span></h2>
+    <div class="month-cards" id="monthCards"></div>
+  </div>
+</section>
+
+<div id="orderFlow" hidden>
 
 <section class="students" id="stepStudents">
   <div class="wrap">
@@ -138,6 +148,8 @@
 
   <div id="review"></div>
 </section>
+
+</div>
 
 <section>
   <div class="wrap">

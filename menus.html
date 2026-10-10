@@ -58,7 +58,18 @@
 </main>
 
 <script>
-const today = new Date().toISOString().slice(0,10);
+/* School clock, matching the order page and checkout. */
+const schoolNow = () => {
+  const parts = {};
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: 'numeric', hourCycle: 'h23'
+  }).formatToParts(new Date()).forEach((p) => { parts[p.type] = p.value; });
+  return { date: parts.year + '-' + parts.month + '-' + parts.day, hour: Number(parts.hour) };
+};
+const now = schoolNow();
+const today = now.date;
+const money = (cents) => '$' + (cents / 100).toFixed(2).replace(/\.00$/, '');
 const fmt = (iso) => {
   const [y,m,d] = iso.split('-').map(Number);
   return new Date(y, m-1, d).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
@@ -73,13 +84,31 @@ fetch('data/menus.json').then(r => r.json()).then(data => {
     return;
   }
 
+  /* The pre-order deadline only changes the price. A month stays open until
+     its last meal stops taking orders, at orderCutoffHour on the day (less
+     orderCutoffDaysBefore), the same rule the order page uses. */
+  const s = data.settings;
+  const daysBefore = s.orderCutoffDaysBefore == null ? 0 : s.orderCutoffDaysBefore;
+  const cutoffHour = s.orderCutoffHour == null ? 9 : s.orderCutoffHour;
+  const stillOrderable = (iso) => {
+    const [y, mo, d] = iso.split('-').map(Number);
+    const last = new Date(y, mo - 1, d - daysBefore);
+    const p = (x) => String(x).padStart(2, '0');
+    const lastIso = last.getFullYear() + '-' + p(last.getMonth() + 1) + '-' + p(last.getDate());
+    return today < lastIso || (today === lastIso && now.hour < cutoffHour);
+  };
+
   months.forEach(m => {
-    const open = m.ordersCloseOn >= today;
+    const open = s.orderingOpen !== false && m.days.some(d => stillOrderable(d.date));
+    const link = 'holy-trinity.html?month=' + encodeURIComponent(m.id);
+    let status;
+    if (!open) status = '<p>Ordering has closed for this month.</p>';
+    else if (today > m.ordersCloseOn) status = '<p><a href="' + link + '">Still open for ordering at ' + money(s.latePrice) + ' a meal</a></p>';
+    else status = '<p><a href="' + link + '">Open for ordering. Pre-order by ' + fmt(m.ordersCloseOn) + ' for ' + money(s.mealPrice) + ' a meal</a></p>';
+
     const sec = document.createElement('section');
     sec.className = 'past-month';
-    sec.innerHTML = '<h3>' + m.label + '</h3>' +
-      (open ? '<p><a href="holy-trinity.html">Open for ordering until ' + fmt(m.ordersCloseOn) + '</a></p>'
-            : '<p>Ordering has closed for this month.</p>');
+    sec.innerHTML = '<h3>' + m.label + '</h3>' + status;
 
     const ul = document.createElement('ul');
     ul.className = 'past-list';
