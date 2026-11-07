@@ -1,6 +1,7 @@
 const { normalizeEmail, looksLikeEmail, linkToken } = require('./lib/auth');
 const { hasOrders } = require('./lib/orders');
 const { sendSignInLink } = require('./lib/email');
+const { logFields } = require('./lib/log');
 
 const reply = (statusCode, body) => ({
   statusCode,
@@ -33,8 +34,9 @@ exports.handler = async (event) => {
     /* A missing SESSION_SECRET or RESEND_API_KEY is a setup problem, not
        something the parent did wrong. Say so plainly rather than sending them
        off to wait for an email that will never arrive. */
-    console.error('Sign-in link failed', err.message);
-    if (/SESSION_SECRET|RESEND_API_KEY/.test(err.message)) {
+    console.error('Sign-in link failed', ...logFields(err));
+    const detail = String(err && err.message || '');
+    if (/SESSION_SECRET|RESEND_API_KEY/.test(detail)) {
       return reply(503, { error: 'Sign-in is temporarily unavailable. Email orderlunchbus@gmail.com and we will send your order details.' });
     }
     return reply(502, { error: 'The link did not send. Try again in a minute, or email orderlunchbus@gmail.com.' });

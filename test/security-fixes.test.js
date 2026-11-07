@@ -39,12 +39,25 @@ console.error = (...args) => {
 let signatureError = null;
 let nextEvent = null;
 let failCheckout = null;
+let portalHasOrders = false;
+let portalSend = async () => {};
 const checkoutPayloads = [];
 const fetchCalls = [];
 
 const Module = require('node:module');
 const originalRequire = Module.prototype.require;
 Module.prototype.require = function (id) {
+  if (id === './lib/orders') {
+    return {
+      hasOrders: async () => portalHasOrders,
+      getOrder: async () => null,
+      ordersForEmail: async () => [],
+      upcomingMeals: () => []
+    };
+  }
+  if (id === './lib/email') {
+    return { sendSignInLink: (...args) => portalSend(...args) };
+  }
   if (id === 'stripe') {
     return function Stripe() {
       return {
@@ -114,6 +127,7 @@ function orderSession() {
       parent_email: PARENT_EMAIL,
       parent_phone: '555-0100',
       meal_count: '1',
+      // A stored order keeps the date it was paid for. This is not the menu date.
       rows_0: `2026-11-10~Corn Dogs and Fries~~~~${STUDENT}~3rd~peanuts~regular~~1000`
     }
   };
@@ -555,4 +569,86 @@ test('the published folder is the website, not the function source', () => {
   const publishedMenu = fs.readFileSync(path.join(pub, 'data/menus.json'), 'utf8');
   assert.equal(publishedMenu, fs.readFileSync(path.join(root, 'data/menus.json'), 'utf8'));
   fs.rmSync(pub, { recursive: true, force: true });
+});
+
+test('sign-in email failures stay generic and omit the address', async () => {
+  const { handler } = require('../netlify/functions/portal-request-link');
+  const { sendSignInLink } = require('../netlify/functions/lib/email');
+  const previousKey = process.env.RESEND_API_KEY;
+  const previousFrom = process.env.EMAIL_FROM;
+  const previousSession = process.env.SESSION_SECRET;
+  process.env.RESEND_API_KEY = 're_test_mock_not_used';
+  process.env.EMAIL_FROM = 'Lunch Bus <orders@example.com>';
+  process.env.SESSION_SECRET = 'test-session-secret-not-production-32';
+  logs.length = 0;
+
+  fetchHandler = async (url) => {
+    assert.equal(String(url), 'https://api.resend.com/emails');
+    return jsonResponse(422, { message: `validation failed for ${PARENT_EMAIL}` });
+  };
+  await assert.rejects(
+    () => sendSignInLink(PARENT_EMAIL, 'https://example.test/link'),
+    (err) => {
+      assert.equal(err.message, 'Resend request failed');
+      assert.equal(err.statusCode, 422);
+      assert.equal(err.reason, 'http_422');
+      assertNoSensitive(err.message + ' ' + err.reason);
+      return true;
+    }
+  );
+
+  delete process.env.RESEND_API_KEY;
+  await assert.rejects(
+    () => sendSignInLink(PARENT_EMAIL, 'https://example.test/link'),
+    (err) => err && err.reason === 'missing_resend_key'
+  );
+  process.env.RESEND_API_KEY = 're_test_mock_not_used';
+
+  const post = (email) => handler({
+    httpMethod: 'POST',
+    body: JSON.stringify({ email }),
+    isBase64Encoded: false
+  });
+
+  portalHasOrders = false;
+  portalSend = async () => { throw new Error('should not send'); };
+  const absent = await post(PARENT_EMAIL);
+  assert.equal(absent.statusCode, 200);
+  assert.deepEqual(JSON.parse(absent.body), { ok: true });
+
+  logs.length = 0;
+  portalHasOrders = true;
+  portalSend = async () => {
+    const err = new Error(`Resend returned 422: validation failed for ${PARENT_EMAIL}`);
+    err.statusCode = 422;
+    throw err;
+  };
+  const failed = await post(PARENT_EMAIL);
+  assert.equal(failed.statusCode, 502);
+  const failedBody = JSON.parse(failed.body);
+  assert.equal(failedBody.error, 'The link did not send. Try again in a minute, or email orderlunchbus@gmail.com.');
+  assertNoSensitive(failed.body + '\n' + logs.join('\n'));
+  assert.match(logs.join('\n'), /Sign-in link failed/);
+
+  logs.length = 0;
+  portalSend = async () => {
+    const err = new Error('RESEND_API_KEY is not set');
+    err.reason = 'missing_resend_key';
+    throw err;
+  };
+  const setup = await post(PARENT_EMAIL);
+  assert.equal(setup.statusCode, 503);
+  const setupBody = JSON.parse(setup.body);
+  assert.match(setupBody.error, /temporarily unavailable/);
+  assert.equal(setupBody.error.includes(PARENT_EMAIL), false);
+  assert.match(logs.join('\n'), /missing_resend_key/);
+  assertNoSensitive(setup.body + '\n' + logs.join('\n'));
+
+  if (previousKey === undefined) delete process.env.RESEND_API_KEY;
+  else process.env.RESEND_API_KEY = previousKey;
+  if (previousFrom === undefined) delete process.env.EMAIL_FROM;
+  else process.env.EMAIL_FROM = previousFrom;
+  if (previousSession === undefined) delete process.env.SESSION_SECRET;
+  else process.env.SESSION_SECRET = previousSession;
+  portalHasOrders = false;
 });

@@ -5,7 +5,11 @@ const { LINK_MINUTES } = require('./auth');
 
 async function sendSignInLink(to, link) {
   const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error('RESEND_API_KEY is not set');
+  if (!key) {
+    const missing = new Error('RESEND_API_KEY is not set');
+    missing.reason = 'missing_resend_key';
+    throw missing;
+  }
 
   const safeLink = link.replace(/"/g, '%22');
   const html = `<!doctype html><html><body style="margin:0;background:#FBF6EA;font-family:Arial,Helvetica,sans-serif;color:#1A462B">
@@ -32,7 +36,14 @@ async function sendSignInLink(to, link) {
     })
   });
 
-  if (!res.ok) throw new Error(`Resend returned ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) {
+    // The provider body can echo the address. Drain it and do not attach it.
+    await res.text().catch(() => '');
+    const failed = new Error('Resend request failed');
+    failed.statusCode = res.status;
+    failed.reason = 'http_' + res.status;
+    throw failed;
+  }
 }
 
 module.exports = { sendSignInLink };
