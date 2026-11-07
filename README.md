@@ -23,7 +23,7 @@ Monthly hot lunch pre-ordering for Holy Trinity Catholic School. Static site, Ne
 ## First-time setup
 
 1. Push this to a new GitHub repo called `lunch-bus`.
-2. In Netlify, add a new site from that repo. No build command needed.
+2. In Netlify, add a new site from that repo. Leave the build command and publish directory empty in the UI so the site uses `netlify.toml`: the command `node scripts/assemble-site.js` copies the pages into `public/`, and that folder is what visitors receive. The functions stay in `netlify/functions`, outside that folder. Do not set the publish directory back to the repository root. That would place the function source on the public site again.
 3. Add these environment variables under Site settings, Environment variables:
    - `STRIPE_SECRET_KEY`, from the Lunch Bus Stripe account. The publishable key is not used anywhere.
    - `STRIPE_WEBHOOK_SECRET`
@@ -95,7 +95,7 @@ One row per meal per student. A parent buying eight lunches for two kids creates
 
 ## Publishing next month's menu
 
-Open `data/menus.json`, add a block to `months`, commit. Netlify redeploys in under a minute.
+Open `data/menus.json`, add a block to `months`, commit. Netlify runs the site assembly and redeploys in under a minute. The menu visitors see is the copy of `data/menus.json` in the published folder. The root file `menus.json` is not used.
 
 ```json
 {

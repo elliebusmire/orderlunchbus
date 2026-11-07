@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const menus = require('../../data/menus.json');
+const { logFields } = require('./lib/log');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -286,7 +287,7 @@ exports.handler = async (event) => {
 
     return { statusCode: 200, body: JSON.stringify({ url: session.url }) };
   } catch (err) {
-    console.error('Stripe session failed', err);
+    console.error('Stripe session failed', ...logFields(err));
     return { statusCode: 502, body: JSON.stringify({ error: 'Payment could not start.' }) };
   }
 };
