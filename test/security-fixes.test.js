@@ -326,10 +326,13 @@ test('checkout keeps menu price and meal, and logs Stripe failures without the o
   const nov = menus.months.find((m) => m.id === '2026-11');
   assert.equal(nov.ordersCloseOn, '2026-10-31');
   assert.deepEqual(nov.days.map((d) => d.date), [
-    '2026-11-03', '2026-11-05', '2026-11-10', '2026-11-12', '2026-11-17', '2026-11-19'
+    '2026-11-03', '2026-11-05', '2026-11-09', '2026-11-12', '2026-11-17', '2026-11-18'
   ]);
   const corn = nov.days.find((d) => d.meal === 'Corn Dogs and Fries');
-  assert.equal(corn.date, '2026-11-10');
+  const dogs = nov.days.find((d) => d.meal === 'Hot Dogs and Fries');
+  assert.equal(corn.date, '2026-11-09');
+  assert.equal(dogs.date, '2026-11-18');
+  assert.equal(nov.days.find((d) => d.date === '2026-11-17').meal, 'Breakfast for Lunch!');
   assert.equal(menus.settings.mealPrice, 800);
   assert.equal(menus.settings.latePrice, 1000);
 
