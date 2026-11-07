@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Monthly hot lunch pre-ordering for Holy Trinity Catholic School",
+  "scripts": {
+    "test": "node --test"
+  },
   "dependencies": {
     "stripe": "^17.0.0"
   }
