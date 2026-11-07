@@ -2,6 +2,7 @@ const Stripe = require('stripe');
 const menus = require('../../data/menus.json');
 const sheets = require('./lib/sheets');
 const { unpack, parseRows } = require('./lib/rows');
+const { logFields } = require('./lib/log');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -24,7 +25,7 @@ exports.handler = async (event) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error('Signature check failed', err.message);
+    console.error('Signature check failed', ...logFields(err));
     return { statusCode: 400, body: 'Bad signature' };
   }
 
@@ -83,12 +84,10 @@ exports.handler = async (event) => {
       const written = await sheets.appendRows(rows);
       return { statusCode: 200, body: `Wrote ${written} rows to the sheet` };
     } catch (err) {
-      console.error('Sheets write failed for', session.id, err.message);
-      /* The reason goes in the response as well as the log. It is only ever
-         seen in the Stripe dashboard, and it turns a silent failure into
-         something you can read without digging through function logs.
-         500 so Stripe retries rather than losing the order. */
-      return { statusCode: 500, body: 'Sheets write failed: ' + String(err.message).slice(0, 400) };
+      /* 500 so Stripe retries. The body stays generic: Google's own text can
+         name the account or the document, and Stripe stores this response. */
+      console.error('Sheets write failed', session.id, ...logFields(err));
+      return { statusCode: 500, body: 'Sheets write failed' };
     }
   }
 
@@ -107,10 +106,13 @@ exports.handler = async (event) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(row)
       });
-      if (!res.ok) failures++;
+      if (!res.ok) {
+        failures++;
+        console.error('Row post rejected', 'HTTP', res.status, 'service_date', row.service_date);
+      }
     } catch (err) {
       failures++;
-      console.error('Row post failed', row.service_date, row.student_name, err.message);
+      console.error('Row post failed', 'service_date', row.service_date, ...logFields(err));
     }
   }
 

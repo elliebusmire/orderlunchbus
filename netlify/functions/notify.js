@@ -5,6 +5,7 @@
    the business actually controls. */
 
 const sheets = require('./lib/sheets');
+const { logFields } = require('./lib/log');
 
 const NOTIFY_TAB = process.env.GOOGLE_NOTIFY_TAB || 'Notify';
 const MAX_EMAIL = 120;
@@ -59,7 +60,7 @@ exports.handler = async (event) => {
 
     return { statusCode: 200, body: JSON.stringify({ ok: true, stored: 'sheet' }) };
   } catch (err) {
-    console.error('Notify write failed:', err.message);
+    console.error('Notify write failed', ...logFields(err));
     // Netlify Forms is the backstop, so do not show the visitor an error.
     return { statusCode: 200, body: JSON.stringify({ ok: true, stored: 'netlify-forms-only' }) };
   }

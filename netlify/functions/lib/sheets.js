@@ -55,9 +55,19 @@ async function accessToken(creds) {
 
   const data = await res.json();
   if (!res.ok || !data.access_token) {
-    throw new Error('Google token request failed: ' + (data.error_description || data.error || res.status));
+    const code = data && typeof data.error === 'string' ? data.error : '';
+    throw sheetsFailure(res.status, code);
   }
   return data.access_token;
+}
+
+/* Google's error body can include the service-account email and the document
+   id. Keep the HTTP status and, when present, the short reason code. */
+function sheetsFailure(status, reason) {
+  const err = new Error('Sheets request failed');
+  err.statusCode = Number(status) || 0;
+  err.reason = typeof reason === 'string' && /^[A-Za-z0-9_]{1,40}$/.test(reason) ? reason : '';
+  return err;
 }
 
 /* Column order here IS the sheet's column order. It must match row 1. */
@@ -93,7 +103,12 @@ async function appendValues(tab, values) {
 
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Sheets append failed (${res.status}): ${detail.slice(0, 300)}`);
+    let reason = '';
+    try {
+      const parsed = JSON.parse(detail);
+      if (parsed && parsed.error && typeof parsed.error.status === 'string') reason = parsed.error.status;
+    } catch (_) { /* reason stays blank; the body is not logged or returned */ }
+    throw sheetsFailure(res.status, reason);
   }
 
   const out = await res.json();

@@ -464,13 +464,13 @@ function ticket(day, month) {
   const everyoneHasIt = roster.length > 0 && orderedFor.length >= roster.length;
 
   const tags = (day.tags || [])
-    .map((t) => `<span class="tag${t === 'vegetarian' ? ' veg' : ''}">${t}</span>`)
+    .map((t) => `<span class="tag${t === 'vegetarian' ? ' veg' : ''}">${esc(t)}</span>`)
     .join('');
 
   el.innerHTML = `
     <span class="daynum"><span class="dow">${parseDate(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>${parseDate(day.date).getDate()}</span>
-    <h3 class="mealname">${day.meal}</h3>
-    <p class="mealdesc">${day.description}</p>
+    <h3 class="mealname">${esc(day.meal)}</h3>
+    <p class="mealdesc">${esc(day.description)}</p>
     <div class="tags">${tags}</div>
     <div class="ticket-actions"></div>
   `;
@@ -567,7 +567,7 @@ function openDialog(day) {
 
   if (day.choices && day.choices.length) {
     const head = document.createElement('p');
-    head.innerHTML = `<strong>${day.choiceLabel || 'Pick one'}</strong>`;
+    head.innerHTML = `<strong>${esc(day.choiceLabel || 'Pick one')}</strong>`;
     head.style.margin = '0.6rem 0 0';
     opts.appendChild(head);
 
@@ -575,8 +575,8 @@ function openDialog(day) {
       const row = document.createElement('div');
       row.className = 'opt-row';
       row.innerHTML = `
-        <input type="radio" name="mealchoice" id="ch_${i}" value="${choice}" ${i === 0 ? 'checked' : ''}>
-        <label for="ch_${i}">${choice}</label>
+        <input type="radio" name="mealchoice" id="ch_${i}" value="${esc(choice)}" ${i === 0 ? 'checked' : ''}>
+        <label for="ch_${i}">${esc(choice)}</label>
       `;
       opts.appendChild(row);
     });
@@ -592,8 +592,8 @@ function openDialog(day) {
       const row = document.createElement('div');
       row.className = 'opt-row';
       row.innerHTML = `
-        <input type="checkbox" id="rm_${i}" data-group="removal" value="${r}">
-        <label for="rm_${i}">No ${r.toLowerCase()}</label>
+        <input type="checkbox" id="rm_${i}" data-group="removal" value="${esc(r)}">
+        <label for="rm_${i}">No ${esc(r.toLowerCase())}</label>
       `;
       opts.appendChild(row);
     });
@@ -612,7 +612,7 @@ function openDialog(day) {
     <label for="dlgNote">Special request (optional)</label>
     <textarea id="dlgNote" rows="2" maxlength="${state.data.settings.noteMaxLength}"
       placeholder="Sauce on the side"></textarea>
-    <p style="font-size:0.78rem;color:var(--moss);margin:0.35rem 0 0">${state.data.settings.notePrompt}</p>
+    <p style="font-size:0.78rem;color:var(--moss);margin:0.35rem 0 0">${esc(state.data.settings.notePrompt || '')}</p>
   `;
   opts.appendChild(noteWrap);
 
@@ -626,8 +626,8 @@ function optionRow(group, id, label, price) {
   const row = document.createElement('div');
   row.className = 'opt-row';
   row.innerHTML = `
-    <input type="checkbox" id="opt_${id}" data-group="${group}" value="${id}">
-    <label for="opt_${id}">${label} <strong>+${money(price)}</strong></label>
+    <input type="checkbox" id="opt_${esc(id)}" data-group="${group}" value="${esc(id)}">
+    <label for="opt_${esc(id)}">${esc(label)} <strong>+${money(price)}</strong></label>
   `;
   return row;
 }
@@ -749,8 +749,8 @@ function renderCart() {
         row.className = 'review-line';
         row.innerHTML = `
           <span class="when">${dayLabel(item.date)}</span>
-          <span class="what">${item.meal}
-            ${extras.length ? `<span class="extras">${extras.join(', ')}</span>` : ''}
+          <span class="what">${esc(item.meal)}
+            ${extras.length ? `<span class="extras">${esc(extras.join(', '))}</span>` : ''}
             ${item.note ? `<span class="extras">Request: ${esc(item.note)}</span>` : ''}
           </span>
           <span>${money(lineTotal(item))}</span>

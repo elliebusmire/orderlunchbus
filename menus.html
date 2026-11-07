@@ -80,7 +80,9 @@ fetch('data/menus.json').then(r => r.json()).then(data => {
   const months = data.months.filter(m => m.published).slice().reverse();
 
   if (months.length === 0) {
-    wrap.innerHTML = '<p>No menus have been published yet.</p>';
+    const empty = document.createElement('p');
+    empty.textContent = 'No menus have been published yet.';
+    wrap.replaceChildren(empty);
     return;
   }
 
@@ -101,21 +103,44 @@ fetch('data/menus.json').then(r => r.json()).then(data => {
   months.forEach(m => {
     const open = s.orderingOpen !== false && m.days.some(d => stillOrderable(d.date));
     const link = 'holy-trinity.html?month=' + encodeURIComponent(m.id);
-    let status;
-    if (!open) status = '<p>Ordering has closed for this month.</p>';
-    else if (today > m.ordersCloseOn) status = '<p><a href="' + link + '">Still open for ordering at ' + money(s.latePrice) + ' a meal</a></p>';
-    else status = '<p><a href="' + link + '">Open for ordering. Pre-order by ' + fmt(m.ordersCloseOn) + ' for ' + money(s.mealPrice) + ' a meal</a></p>';
 
     const sec = document.createElement('section');
     sec.className = 'past-month';
-    sec.innerHTML = '<h3>' + m.label + '</h3>' + status;
+    const heading = document.createElement('h3');
+    heading.textContent = m.label;
+    sec.appendChild(heading);
+
+    const statusP = document.createElement('p');
+    if (!open) {
+      statusP.textContent = 'Ordering has closed for this month.';
+    } else {
+      const linkA = document.createElement('a');
+      linkA.href = link;
+      linkA.textContent = today > m.ordersCloseOn
+        ? 'Still open for ordering at ' + money(s.latePrice) + ' a meal'
+        : 'Open for ordering. Pre-order by ' + fmt(m.ordersCloseOn) + ' for ' + money(s.mealPrice) + ' a meal';
+      statusP.appendChild(linkA);
+    }
+    sec.appendChild(statusP);
 
     const ul = document.createElement('ul');
     ul.className = 'past-list';
     m.days.forEach(d => {
       const li = document.createElement('li');
-      li.innerHTML = '<span class="d">' + fmt(d.date) + '</span><span>' + d.meal +
-        (d.choices ? ' <span class="tag">' + d.choices.join(' or ') + '</span>' : '') + '</span>';
+      const when = document.createElement('span');
+      when.className = 'd';
+      when.textContent = fmt(d.date);
+      const what = document.createElement('span');
+      what.textContent = d.meal;
+      if (d.choices && d.choices.length) {
+        what.appendChild(document.createTextNode(' '));
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = d.choices.join(' or ');
+        what.appendChild(tag);
+      }
+      li.appendChild(when);
+      li.appendChild(what);
       ul.appendChild(li);
     });
     sec.appendChild(ul);
