@@ -293,13 +293,13 @@ test('weeks, month span, and past days follow the new dates', () => {
     assert.equal('2026-11-09' < client.todayISO(), false);
     assert.equal('2026-11-18' < client.todayISO(), false);
     const ids = client.pickableMonths().map((m) => m.id);
-    assert.deepEqual(ids, ['2026-11']);
+    assert.deepEqual(ids, ['2026-11', '2026-12']);
   });
 
   withNow('2026-11-19T20:00:00.000Z', () => {
     assert.equal(client.todayISO(), '2026-11-19');
     assert.equal('2026-11-18' < client.todayISO(), true);
-    assert.deepEqual(client.pickableMonths().map((m) => m.id), []);
+    assert.deepEqual(client.pickableMonths().map((m) => m.id), ['2026-12']);
   });
 });
 
