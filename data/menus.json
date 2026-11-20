@@ -224,6 +224,72 @@
           ]
         }
       ]
+    },
+    {
+      "id": "2026-12",
+      "label": "December 2026",
+      "published": true,
+      "ordersCloseOn": "2026-11-30",
+      "days": [
+        {
+          "date": "2026-12-01",
+          "meal": "Hard Shell Tacos",
+          "description": "Hard shell tacos with rice and fresh fruit.",
+          "tags": [
+            "contains dairy"
+          ]
+        },
+        {
+          "date": "2026-12-03",
+          "meal": "Spaghetti and Meatballs",
+          "description": "Spaghetti and meatballs with breadsticks.",
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ],
+          "removals": [
+            "Breadsticks"
+          ]
+        },
+        {
+          "date": "2026-12-08",
+          "meal": "Personal Pita Pizza",
+          "description": "Pita crust pizza with fresh fruit.",
+          "choiceLabel": "Pick a topping",
+          "choices": [
+            "Cheese",
+            "Pepperoni"
+          ],
+          "tags": [
+            "contains wheat",
+            "contains dairy"
+          ]
+        },
+        {
+          "date": "2026-12-10",
+          "meal": "Corn Dogs and Chips",
+          "description": "Corn dogs with chips and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        },
+        {
+          "date": "2026-12-15",
+          "meal": "Hot Dogs and Fries",
+          "description": "Hot dog with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        },
+        {
+          "date": "2026-12-17",
+          "meal": "Chicken Nuggets and Fries",
+          "description": "Chicken nuggets with French fries and fresh fruit.",
+          "tags": [
+            "contains wheat"
+          ]
+        }
+      ]
     }
   ],
   "events": [
